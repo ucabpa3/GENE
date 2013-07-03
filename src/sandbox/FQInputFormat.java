@@ -1,6 +1,7 @@
 package sandbox;
 
 
+import genelab.Conf;
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -28,7 +29,7 @@ public class FQInputFormat extends TextInputFormat {
 
     private static class NLinesRecordReader extends RecordReader<LongWritable, Text> {
 
-        private final int NLINESTOPROCESS = 4;
+        private final int NLINESTOPROCESS = Conf.N_LINES_PER_CHUNKS;
         private LineReader in;
         private LongWritable key;
         private Text value = new Text();
@@ -36,7 +37,7 @@ public class FQInputFormat extends TextInputFormat {
         private long end = 0;
         private long pos = 0;
         private long keyValue=1;
-        private int maxLineLength;
+        private int maxLineLength=Conf.MAX_LINE_LENGTH;
 
         @Override
         public void close() throws IOException {
@@ -69,7 +70,6 @@ public class FQInputFormat extends TextInputFormat {
             FileSplit split = (FileSplit) genericSplit;
             final Path file = split.getPath();
             Configuration conf = context.getConfiguration();
-            this.maxLineLength = conf.getInt("mapred.linerecordreader.maxlength", Integer.MAX_VALUE);
             FileSystem fs = file.getFileSystem(conf);
             start = split.getStart();
             end = start + split.getLength();

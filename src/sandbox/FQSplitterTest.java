@@ -5,6 +5,7 @@ import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
@@ -15,27 +16,22 @@ import org.apache.hadoop.util.GenericOptionsParser;
 
 public class FQSplitterTest {
 
-    public static class FQSplitterMapper extends Mapper<Object, Text, Text, IntWritable> {
+    public static class FQSplitterMapper extends Mapper<LongWritable, Text, Integer, Text> {
 
         @Override
-        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
             System.out.println("key: " + key);
-            System.out.println("value: " + value);
+            System.out.println(value);
         }
     }
 
-    public static class FQSplitterReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
+    public static class FQSplitterReducer extends Reducer<Integer, Text, Integer, Text> {
 
         private IntWritable result = new IntWritable();
 
         @Override
-        public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-            int sum = 0;
-            for (IntWritable val : values) {
-                sum += val.get();
-            }
-            result.set(sum);
-            context.write(key, result);
+        protected void reduce(Integer key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+            
         }
     }
 
