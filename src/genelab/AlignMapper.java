@@ -18,6 +18,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.JobID;
 
 /**
  *
@@ -25,16 +26,22 @@ import org.apache.hadoop.mapreduce.Mapper;
  */
 public class AlignMapper extends Mapper<Object, Text, Text, IntWritable>{
    
+    static Integer fileID = 1;
     
     public void map(Object key, Text value, Context context)
                 throws IOException, InterruptedException {
         
         Configuration conf = new Configuration();
         FileSystem hdfsFileSystem = FileSystem.get(conf);
+        System.out.println(context.getJobID());
+        
         String testDir = "/Users/costas/Documents/hadoop_test/";
         String executable = testDir+"fr";
         String inPath = testDir + "input.txt";
         new File(testDir).mkdir();
+        File workingDir = new File(testDir+context.getJobID().toString());
+        
+        workingDir.mkdir();
         File input = new File(inPath);
         
         if(!input.exists()){
@@ -44,7 +51,7 @@ public class AlignMapper extends Mapper<Object, Text, Text, IntWritable>{
        
         String in = value.toString();
         
-        FileWriter fw = new FileWriter(input.getAbsoluteFile(),true);
+        FileWriter fw = new FileWriter(input.getAbsoluteFile());
         BufferedWriter bw = new BufferedWriter(fw);
 			bw.write(in);
 			bw.close();
@@ -65,7 +72,7 @@ public class AlignMapper extends Mapper<Object, Text, Text, IntWritable>{
         
         
             String[] arrr = {" "};
-            Process p = Runtime.getRuntime().exec(executable +" " + testDir+"input.txt", arrr , new File(testDir));
+            Process p = Runtime.getRuntime().exec(executable +" " + testDir+"input.txt", arrr , workingDir);
             p.waitFor();
             InputStream is = p.getInputStream();
             InputStreamReader isr = new InputStreamReader(is);
@@ -85,9 +92,18 @@ public class AlignMapper extends Mapper<Object, Text, Text, IntWritable>{
                 //Outputs your process execution
                 System.out.println("Error:" + error);
             }
-            Path local_output = new Path(testDir+"output.txt");
-            Path hdfs_output = new Path("/user/costas/output/output.txt"); 
-            hdfsFileSystem.copyFromLocalFile(local_output, hdfs_output);
+            
+            File Rename = new File(workingDir+"/output.txt");
+            if(Rename.exists()){
+                File RenamedFile = new File(workingDir+"/"+fileID.toString());
+                Rename.renameTo(RenamedFile);
+                Path local_output = new Path(workingDir+"/"+fileID.toString());
+                
+                Path hdfs_output = new Path("/user/costas/output/"+fileID.toString()); 
+                hdfsFileSystem.copyFromLocalFile(local_output, hdfs_output);
+                
+                fileID++;
+            }
         }
     }
    
