@@ -11,15 +11,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.StringTokenizer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.JobID;
-
 /**
  *
  * @author costas
@@ -32,18 +30,17 @@ public class AlignMapper extends Mapper<Object, Text, Text, IntWritable>{
                 throws IOException, InterruptedException {
         
         Configuration conf = new Configuration();
+        LocalFileSystem localFS = new LocalFileSystem(FileSystem.getLocal(conf));   
         FileSystem hdfsFileSystem = FileSystem.get(conf);
-        System.out.println(context.getJobID());
+        String mainDir = Conf.MAINDIR;
+        File workingDir = new File(mainDir+context.getJobID().toString());
         
-        String testDir = "/Users/costas/Documents/hadoop_test/";
-        String executable = testDir+"fr";
-        String inPath = testDir + "input.txt";
-        new File(testDir).mkdir();
-        File workingDir = new File(testDir+context.getJobID().toString());
-        
+        new File(mainDir).mkdir();
+        System.out.println(localFS.getHomeDirectory());
         workingDir.mkdir();
-        File input = new File(inPath);
         
+        String inPath = mainDir + "input.txt";
+        File input = new File(inPath);
         if(!input.exists()){
             input.createNewFile();
         }
@@ -54,11 +51,15 @@ public class AlignMapper extends Mapper<Object, Text, Text, IntWritable>{
         FileWriter fw = new FileWriter(input.getAbsoluteFile());
         BufferedWriter bw = new BufferedWriter(fw);
 			bw.write(in);
-			bw.close();
-               
+			bw.close();   
+                        
+        //The rest to be copied to the BWA class
+                        
+        String executable = mainDir+"fr";
+                
         String result = "";
         
-        Path local = new Path(testDir);
+        Path local = new Path(mainDir);
         Path hdfs = new Path("/user/costas/fr");
         String fileName = hdfs.getName();
         File toCopy = new File(executable);
@@ -71,8 +72,8 @@ public class AlignMapper extends Mapper<Object, Text, Text, IntWritable>{
         } 
         
         
-            String[] arrr = {" "};
-            Process p = Runtime.getRuntime().exec(executable +" " + testDir+"input.txt", arrr , workingDir);
+            String[] empty = {" "};
+            Process p = Runtime.getRuntime().exec(executable +" " + mainDir+"input.txt", empty , workingDir);
             p.waitFor();
             InputStream is = p.getInputStream();
             InputStreamReader isr = new InputStreamReader(is);
