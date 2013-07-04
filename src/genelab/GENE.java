@@ -36,8 +36,8 @@ public class GENE{
         job.setInputFormatClass(TextInputFormat.class);
 
         job.setJarByClass(GENE.class);
-        job.setMapperClass(AlignMapper.class);
-        job.setReducerClass(AlignReducer.class);
+        job.setMapperClass(BWAMapper.class);
+        job.setReducerClass(BWAReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
         FileInputFormat.addInputPath(job, new Path(otherArgs[0]));
