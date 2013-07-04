@@ -29,7 +29,7 @@ public class GENE{
         String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         
         if (otherArgs.length < 2) {
-            System.err.println("Usage: TestWholeFileInputFormat  <in> <out>");
+            System.err.println("Usage: GENE  <in> <out>");
             System.exit(2);
         }
         Job job = new Job(conf, "align");

@@ -16,5 +16,6 @@ public class Conf {
     
     /*PATHS*/
     public static String MAINDIR = "/Users/costas/genelab/";
+    public static String BWADIR = MAINDIR + "fr";
     
 }

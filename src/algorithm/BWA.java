@@ -4,11 +4,75 @@
  */
 package algorithm;
 
+import genelab.Conf;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 /**
  *
  * @author costas
  */
 public class BWA implements AlgorithmInterface{
-    public void execute(String fileName){
+    
+    private static Integer fileID = 1;
+    
+        public void execute(String fileName, File workingDir, Configuration conf) throws IOException{
+        System.out.println("Executing BWA..");
+        
+        String executable = Conf.BWADIR;
+        FileSystem hdfsFileSystem = FileSystem.get(conf);        
+        String result = "";
+        
+        Path local = new Path(Conf.MAINDIR);
+        Path hdfs = new Path("/user/costas/fr");
+        String fName = hdfs.getName();
+        File toCopy = new File(executable);
+
+        if (!hdfsFileSystem.exists(hdfs)) {
+            System.out.println("File " + fName + " does not exist on HDFS on location: " + local);
+        } else if(!toCopy.exists()){
+            hdfsFileSystem.copyToLocalFile(false, hdfs, local);
+            System.out.println("File " + fName + " copied to local machine on location: " + local);
+        } 
+        
+        
+            String[] empty = {" "};
+            Process p = Runtime.getRuntime().exec(executable +" " + fileName, empty , workingDir);
+            
+            InputStream is = p.getInputStream();
+            InputStreamReader isr = new InputStreamReader(is);
+            BufferedReader br = new BufferedReader(isr);
+            
+            InputStream er = p.getErrorStream();
+            InputStreamReader err = new InputStreamReader(er);
+            BufferedReader br_err = new BufferedReader(err);
+            String line;
+            String error;
+            while ((line = br.readLine()) != null) {
+                //Outputs your process execution
+                System.out.println("Line:" + line);
+            }
+            
+            while ((error = br_err.readLine()) != null) {
+                //Outputs your process execution
+                System.out.println("Error:" + error);
+            }
+            
+            File Rename = new File(workingDir+"/output.txt");
+            if(Rename.exists()){
+                File RenamedFile = new File(workingDir+"/"+fileID.toString());
+                Rename.renameTo(RenamedFile);
+                Path local_output = new Path(workingDir+"/"+fileID.toString());
+                
+                Path hdfs_output = new Path("/user/costas/output/"+fileID.toString()); 
+                hdfsFileSystem.copyFromLocalFile(local_output, hdfs_output);
+                
+                fileID++;
+            }
     }
 }
