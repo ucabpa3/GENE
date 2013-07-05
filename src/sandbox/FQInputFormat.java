@@ -1,6 +1,5 @@
 package sandbox;
 
-
 import genelab.Conf;
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
@@ -36,8 +35,8 @@ public class FQInputFormat extends TextInputFormat {
         private long start = 0;
         private long end = 0;
         private long pos = 0;
-        private long keyValue=1;
-        private int maxLineLength=Conf.MAX_LINE_LENGTH;
+        private long keyValue = 1;
+        private int maxLineLength = Conf.MAX_LINE_LENGTH;
 
         @Override
         public void close() throws IOException {
@@ -100,7 +99,7 @@ public class FQInputFormat extends TextInputFormat {
             value.clear();
             final Text endline = new Text("\n");
             int newSize = 0;
-            for (int i = 0; i < NLINESTOPROCESS; i++) {
+            for (int i = 0; i < NLINESTOPROCESS - 1; i++) {
                 Text v = new Text();
                 while (pos < end) {
                     newSize = in.readLine(v, maxLineLength, Math.max((int) Math.min(Integer.MAX_VALUE, end - pos), maxLineLength));
@@ -115,6 +114,9 @@ public class FQInputFormat extends TextInputFormat {
                     }
                 }
             }
+            Text v = new Text();
+            newSize = in.readLine(v, maxLineLength, Math.max((int) Math.min(Integer.MAX_VALUE, end - pos), maxLineLength));
+            value.append(v.getBytes(), 0, v.getLength());
             if (newSize == 0) {
                 key = null;
                 value = null;
