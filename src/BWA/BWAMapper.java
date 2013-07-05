@@ -2,8 +2,9 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package genelab;
+package BWA;
 
+import genelab.Conf;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;

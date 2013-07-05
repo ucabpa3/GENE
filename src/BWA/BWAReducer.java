@@ -2,7 +2,7 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package genelab;
+package BWA;
 
 import java.io.IOException;
 import org.apache.hadoop.io.IntWritable;
