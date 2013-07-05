@@ -48,6 +48,7 @@ public class BWAMapper extends Mapper<Object, Text, Text, IntWritable>{
         
        
         String in = value.toString();
+        System.out.println("Value:  "+value.toString());
         
         FileWriter fw = new FileWriter(input.getAbsoluteFile());
         BufferedWriter bw = new BufferedWriter(fw);
@@ -55,7 +56,7 @@ public class BWAMapper extends Mapper<Object, Text, Text, IntWritable>{
 			bw.close();   
                        
                         
-        String executable = mainDir+"fr";
+        String executable = Conf.BWADIR;
                 
         String result = "";
         
@@ -73,7 +74,8 @@ public class BWAMapper extends Mapper<Object, Text, Text, IntWritable>{
         
         
             String[] empty = {" "};
-            Process p = Runtime.getRuntime().exec(executable +" " + mainDir+"input.txt", empty , workingDir);
+            //Process p = Runtime.getRuntime().exec(executable +" " + mainDir+"input.fq", empty , workingDir);
+            Process p = Runtime.getRuntime().exec(executable + " "+" aln "+" /Users/costas/genelab/reference.fa " + mainDir+"input.fq > " + fileID.toString()+".sai" , empty , workingDir);
             p.waitFor();
             InputStream is = p.getInputStream();
             InputStreamReader isr = new InputStreamReader(is);
@@ -94,7 +96,7 @@ public class BWAMapper extends Mapper<Object, Text, Text, IntWritable>{
                 System.out.println("Error:" + error);
             }
             
-            File Rename = new File(workingDir+"/output.txt");
+           /* File Rename = new File(workingDir+"/output.txt");
             if(Rename.exists()){
                 File RenamedFile = new File(workingDir+"/"+fileID.toString());
                 Rename.renameTo(RenamedFile);
@@ -103,8 +105,9 @@ public class BWAMapper extends Mapper<Object, Text, Text, IntWritable>{
                 Path hdfs_output = new Path("/user/costas/output/"+fileID.toString()); 
                 hdfsFileSystem.copyFromLocalFile(local_output, hdfs_output);
                 
-                fileID++;
-            }
+                
+            }*/
+            fileID++;
         }
     }
    

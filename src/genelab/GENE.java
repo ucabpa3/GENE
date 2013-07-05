@@ -15,6 +15,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
+import sandbox.FQInputFormat;
 
 /**
  *
@@ -35,7 +36,7 @@ public class GENE{
             System.exit(2);
         }
         Job job = new Job(conf, "align");
-        job.setInputFormatClass(TextInputFormat.class);
+        job.setInputFormatClass(FQInputFormat.class);
 
         job.setJarByClass(GENE.class);
         job.setMapperClass(BWAMapper.class);

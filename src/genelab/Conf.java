@@ -16,7 +16,7 @@ public class Conf {
     
     /*LOCAL PATHS*/
     public static String MAINDIR = "/Users/costas/genelab/";
-    public static String BWADIR = MAINDIR + "fr";
+    public static String BWADIR = MAINDIR + "bwa";
     
     /*HDFS PATHS*/
     public static String BWAHDFS = "/user/costas/bwa";
