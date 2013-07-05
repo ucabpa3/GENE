@@ -5,6 +5,14 @@
 package BWA;
 
 import java.io.IOException;
+import java.net.URI;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
@@ -18,8 +26,43 @@ public class BWAReducer
 
         public void reduce(Text key, Iterable<IntWritable> values,
                 Context context) throws IOException, InterruptedException {
-            for (IntWritable val : values) {
-                context.write(key, val);
-            }
+        	
+        	 Configuration conf = new Configuration();  
+        	    String inputDir = new String(args [0]);//设定输入目录 
+        	    FileSystem hdfs =FileSystem.get(URI.create(inputDir),conf); //获得HDFS文件系统的对象
+        	    Path hdfsFile = new Path(args[1]);//设定输出目录  
+        	   try{
+        		   
+        	      FileStatus[] inputFiles = hdfs.listStatus(new Path(inputDir));//FileStatus的listStatus()方法获得一个目录中的文件列表 
+        	      FSDataOutputStream out = hdfs.create(hdfsFile);//生成HDFS输出流  
+        	      for(int i = 0; i < inputFiles.length; i ++){  
+        	            System.out.println(inputFiles[i].getPath().getName());
+        	            String extensionName = getExtensionName(inputFiles[i].getPath().getName()).toLowerCase();
+        	            if (extensionName == "sai"){
+        	            FSDataInputStream in = hdfs.open(inputFiles[i].getPath());//打开本地输入流  
+        	            byte[] buffer = new byte[256];  
+        	            int bytesRead = 0;  
+        	            while((bytesRead = in.read(buffer))>0){  
+        	            out.write(buffer,0,bytesRead);//通过一个循环来写入  
+        	          }  
+        	            in.close();  
+        	         }  
+        	         out.close();
+        	      }
+        	     }catch (IOException e) {  
+        	           e.printStackTrace();  
+        	     }  	
+           // for (IntWritable val : values) {
+             //   context.write(key, val);
+            //}
         }
     }
+public static String getExtensionName(String filename) {
+	if ((filename != null) && (filename.length() > 0)) {
+	int dot = filename.lastIndexOf('.');
+	if ((dot >-1) && (dot < (filename.length() - 1))) {
+	return filename.substring(dot + 1);
+	}
+	}
+	return filename;
+	} 
