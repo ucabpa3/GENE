@@ -40,7 +40,7 @@ public class BWAMapper extends Mapper<Object, Text, Text, IntWritable>{
         System.out.println(localFS.getHomeDirectory());
         workingDir.mkdir();
         
-        String inPath = mainDir + "input.txt";
+        String inPath = mainDir + "input.fq";
         File input = new File(inPath);
         if(!input.exists()){
             input.createNewFile();
@@ -60,7 +60,7 @@ public class BWAMapper extends Mapper<Object, Text, Text, IntWritable>{
         String result = "";
         
         Path local = new Path(mainDir);
-        Path hdfs = new Path("/user/costas/fr");
+        Path hdfs = new Path(Conf.BWAHDFS);
         String fileName = hdfs.getName();
         File toCopy = new File(executable);
 

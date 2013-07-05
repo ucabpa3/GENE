@@ -14,8 +14,11 @@ public class Conf {
     public static int N_LINES_PER_CHUNKS=4;
     public static int MAX_LINE_LENGTH=Integer.MAX_VALUE;
     
-    /*PATHS*/
+    /*LOCAL PATHS*/
     public static String MAINDIR = "/Users/costas/genelab/";
     public static String BWADIR = MAINDIR + "fr";
+    
+    /*HDFS PATHS*/
+    public static String BWAHDFS = "/user/costas/bwa";
     
 }
