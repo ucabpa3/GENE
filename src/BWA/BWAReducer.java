@@ -30,7 +30,7 @@ public class BWAReducer
         	 Configuration conf = new Configuration();  
         	    String inputDir = "hdfs://localhost:9000/user/costas/";//设定输入目录 
         	    FileSystem hdfs =FileSystem.get(URI.create(inputDir),conf); //获得HDFS文件系统的对象
-        	    Path hdfsFile = "hdfs://localhost:9000/user/costas/output.sai";//设定输出目录  
+        	    Path hdfsFile = new Path("hdfs://localhost:9000/user/costas/output.sai");//设定输出目录  
         	   try{
         		   
         	      FileStatus[] inputFiles = hdfs.listStatus(new Path(inputDir));//FileStatus的listStatus()方法获得一个目录中的文件列表 
