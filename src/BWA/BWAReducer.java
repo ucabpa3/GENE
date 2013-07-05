@@ -27,8 +27,8 @@ public class BWAReducer
         public void reduce(Text key, Iterable<IntWritable> values,
                 Context context) throws IOException, InterruptedException {
         	
-        	 Configuration conf = new Configuration();  
-        	    String inputDir = new String(args [0]);//设定输入目录 
+        	/* Configuration conf = new Configuration();  
+        	    String inputDir = new String("user/costas");//设定输入目录 
         	    FileSystem hdfs =FileSystem.get(URI.create(inputDir),conf); //获得HDFS文件系统的对象
         	    Path hdfsFile = new Path(args[1]);//设定输出目录  
         	   try{
@@ -64,5 +64,6 @@ public class BWAReducer
         	}
         	}
         	return filename;
-        	} 
+        	} */
     }
+}
