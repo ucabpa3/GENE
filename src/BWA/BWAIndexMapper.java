@@ -22,6 +22,9 @@ public class BWAIndexMapper extends Mapper<Object, Text, Text, Text>{
     public void map(Object key, Text value, Mapper.Context context)
                 throws IOException, InterruptedException {
         
+        String in = value.toString();
+        System.out.println("Value:  "+value.toString());
+        
         //Process p = Runtime.getRuntime().exec(bwa +" index ",new String[]{" "} , refDir);
         //int exitValue = p.waitFor();
         

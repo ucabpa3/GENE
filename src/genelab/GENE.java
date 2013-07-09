@@ -18,6 +18,7 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import sandbox.FQInputFormat;
+import sandbox.WholeFileInputFormat;
 
 /**
  *
@@ -29,7 +30,7 @@ public class GENE{
      * @param args the command line arguments
      */
     
-    private static Configuration conf;
+    private static Configuration conf = new Configuration();
     
     public static void main(String[] args) throws Exception{
         // TODO code application logic here
@@ -42,12 +43,10 @@ public class GENE{
         }
         Path input = new Path(otherArgs[0]);
         Path output = new Path(otherArgs[1]);
-        align(input,output);
+        index(input,output);
+        //align(input,output);
     }
 
-    public GENE() {
-        GENE.conf = new Configuration();
-    }
     private static void align(Path input, Path output) throws Exception{
         
         Job job = new Job(GENE.conf, "align");
@@ -58,11 +57,27 @@ public class GENE{
         job.setMapperClass(BWAMapper.class);
         job.setReducerClass(BWAReducer.class);
         job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(IntWritable.class);
+        job.setOutputValueClass(Text.class);
         FileInputFormat.addInputPath(job, input);
         FileOutputFormat.setOutputPath(job, output);   
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
 
     }
+    
+    private static void index(Path input, Path output) throws Exception{
+        Job job = new Job(GENE.conf, "index");
+        
+        job.setInputFormatClass(WholeFileInputFormat.class);
+
+        job.setJarByClass(GENE.class);
+        job.setNumReduceTasks(0);
+        job.setMapperClass(BWAIndexMapper.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+        FileInputFormat.addInputPath(job, input);
+        FileOutputFormat.setOutputPath(job, output);   
+
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }    
 }
