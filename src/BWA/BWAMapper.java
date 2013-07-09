@@ -28,6 +28,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 public class BWAMapper extends Mapper<Object, Text, Text, Text>{
    
     static Integer fileID = 1;
+    String mainDir = Conf.MAINDIR;
     
     public void map(Object key, Text value, Context context)
                 throws IOException, InterruptedException {
@@ -35,7 +36,7 @@ public class BWAMapper extends Mapper<Object, Text, Text, Text>{
         Configuration conf = new Configuration();
         LocalFileSystem localFS = new LocalFileSystem(FileSystem.getLocal(conf));   
         FileSystem hdfsFileSystem = FileSystem.get(conf);
-        String mainDir = Conf.MAINDIR;
+        
         File workingDir = new File(mainDir+context.getJobID().toString());
         System.out.println("Working Directory = " +
               System.getProperty("user.dir"));
