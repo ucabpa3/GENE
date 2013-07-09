@@ -12,6 +12,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalFileSystem;
@@ -35,10 +37,13 @@ public class BWAMapper extends Mapper<Object, Text, Text, IntWritable>{
         FileSystem hdfsFileSystem = FileSystem.get(conf);
         String mainDir = Conf.MAINDIR;
         File workingDir = new File(mainDir+context.getJobID().toString());
-        
+        System.out.println("Working Directory = " +
+              System.getProperty("user.dir"));
         new File(mainDir).mkdir();
         System.out.println(localFS.getHomeDirectory());
-        workingDir.mkdir();
+        if(workingDir.mkdir()){
+            System.out.println("OK!!!!!!!");}
+        System.out.println(workingDir.getAbsolutePath());
         
         String inPath = mainDir + "input.fq";
         File input = new File(inPath);
@@ -73,10 +78,9 @@ public class BWAMapper extends Mapper<Object, Text, Text, IntWritable>{
         } 
         
         
-            String[] empty = {" "};
-            //Process p = Runtime.getRuntime().exec(executable +" " + mainDir+"input.fq", empty , workingDir);
-            Process p = Runtime.getRuntime().exec(executable + " "+" aln "+" /Users/costas/genelab/reference.fa " + mainDir+"input.fq > " + fileID.toString()+".sai" , empty , workingDir);
-            p.waitFor();
+            //Process p = Runtime.getRuntime().exec(executable +" aln -f "+fileID+".sai" + mainDir+"input.fq", empty , workingDir);
+            /*Process p = Runtime.getRuntime().exec(executable + " "+" aln -f"+fileID+" "+" /Users/costas/genelab/reference.fa " + mainDir+"input.fq");
+            
             InputStream is = p.getInputStream();
             InputStreamReader isr = new InputStreamReader(is);
             BufferedReader br = new BufferedReader(isr);
@@ -95,7 +99,16 @@ public class BWAMapper extends Mapper<Object, Text, Text, IntWritable>{
                 //Outputs your process execution
                 System.out.println("Error:" + error);
             }
+             
+            OutputStream outputStream = p.getOutputStream();
+            PrintStream printStream = new PrintStream(outputStream);
+            System.out.println("printing output");
+            printStream.println();
+            printStream.flush();
+            printStream.close();
             
+            int exitVal = p.waitFor();
+            System.out.println("Process exit value: " + exitVal);
            /* File Rename = new File(workingDir+"/output.txt");
             if(Rename.exists()){
                 File RenamedFile = new File(workingDir+"/"+fileID.toString());
