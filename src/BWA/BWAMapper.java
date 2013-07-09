@@ -25,7 +25,7 @@ import org.apache.hadoop.mapreduce.Mapper;
  *
  * @author costas
  */
-public class BWAMapper extends Mapper<Object, Text, Text, IntWritable>{
+public class BWAMapper extends Mapper<Object, Text, Text, Text>{
    
     static Integer fileID = 1;
     

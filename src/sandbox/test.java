@@ -1,5 +1,6 @@
 package sandbox;
 
+import BWA.BWAIndexMapper;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -18,8 +19,8 @@ public class test {
 //        String temp = "/Users/yukun/genelab/bwa aln /Users/yukun/genelab/reference.fa /Users/yukun/genelab/input.fq > /Users/yukun/genelab/2.sai";
 //        System.out.println(temp);
         //String[] temp = {"/Users/costas/genelab/bwa aln -f /Users/costas/genelab/reference.fa /User/costas/genelab/input.fq "};
-        
-        Process p = Runtime.getRuntime().exec("/Users/costas/genelab/bwa aln /Users/costas/genelab/reference.fa /Users/costas/genelab/input.fq");
+
+        /*Process p = Runtime.getRuntime().exec("/Users/costas/genelab/bwa aln /Users/costas/genelab/reference.fa /Users/costas/genelab/input.fq");
         p.waitFor();
         InputStream is = p.getInputStream();
         InputStreamReader isr = new InputStreamReader(is);
@@ -46,6 +47,6 @@ public class test {
             printStream.println();
             printStream.flush();
             printStream.close();
-        System.out.println("exit value: " + p.exitValue());
+        System.out.println("exit value: " + p.exitValue());*/
     }
 }

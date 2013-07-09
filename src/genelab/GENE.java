@@ -4,8 +4,10 @@
  */
 package genelab;
 
+import BWA.BWAIndexMapper;
 import BWA.BWAMapper;
 import BWA.BWAReducer;
+import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
@@ -26,16 +28,30 @@ public class GENE{
     /**
      * @param args the command line arguments
      */
+    
+    private static Configuration conf;
+    
     public static void main(String[] args) throws Exception{
         // TODO code application logic here
-        Configuration conf = new Configuration();
-        String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
+        
+        String[] otherArgs = new GenericOptionsParser(GENE.conf, args).getRemainingArgs();
         
         if (otherArgs.length < 2) {
             System.err.println("Usage: GENE  <in> <out>");
             System.exit(2);
         }
-        Job job = new Job(conf, "align");
+        Path input = new Path(otherArgs[0]);
+        Path output = new Path(otherArgs[1]);
+        align(input,output);
+    }
+
+    public GENE() {
+        GENE.conf = new Configuration();
+    }
+    private static void align(Path input, Path output) throws Exception{
+        
+        Job job = new Job(GENE.conf, "align");
+        
         job.setInputFormatClass(FQInputFormat.class);
 
         job.setJarByClass(GENE.class);
@@ -43,11 +59,10 @@ public class GENE{
         job.setReducerClass(BWAReducer.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(IntWritable.class);
-        FileInputFormat.addInputPath(job, new Path(otherArgs[0]));
-        FileOutputFormat.setOutputPath(job, new Path(otherArgs[1]));
-
-      
+        FileInputFormat.addInputPath(job, input);
+        FileOutputFormat.setOutputPath(job, output);   
 
         System.exit(job.waitForCompletion(true) ? 0 : 1);
+
     }
 }

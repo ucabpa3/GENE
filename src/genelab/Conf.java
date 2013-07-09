@@ -15,8 +15,9 @@ public class Conf {
     public static int MAX_LINE_LENGTH=Integer.MAX_VALUE;
     
     /*LOCAL PATHS*/
-    public static String MAINDIR = "genelab";
+    public static String MAINDIR = "/Users/costas/genelab/";
     public static String BWADIR = MAINDIR + "bwa";
+    public static String REFERENCE = MAINDIR + "reference";
     
     /*HDFS PATHS*/
     public static String BWAHDFS = "/user/costas/bwa";
