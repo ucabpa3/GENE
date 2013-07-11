@@ -22,23 +22,23 @@ public class BWAReducer
                 Context context) throws Exception {
 /*        	
         	 Configuration conf = new Configuration();  
-        	    String inputDir = "hdfs://localhost:9000/user/costas/";//设定输入目录 
-        	    FileSystem hdfs =FileSystem.get(URI.create(inputDir),conf); //获得HDFS文件系统的对象
-        	    Path hdfsFile = new Path("hdfs://localhost:9000/user/costas/output.sai");//设定输出目录  
+        	    String inputDir = "hdfs://localhost:9000/user/costas/";//set input dir
+        	    FileSystem hdfs =FileSystem.get(URI.create(inputDir),conf); //get HDFS file system object
+        	    Path hdfsFile = new Path("hdfs://localhost:9000/user/costas/output.sai");//set the output dir 
         	   try{
         		   
-        	      FileStatus[] inputFiles = hdfs.listStatus(new Path(inputDir));//FileStatus的listStatus()方法获得一个目录中的文件列表 
-        	      FSDataOutputStream out = hdfs.create(hdfsFile);//生成HDFS输出流  
+        	      FileStatus[] inputFiles = hdfs.listStatus(new Path(inputDir));//FileStatus - listStatus() get a list of the file in this dir 
+        	      FSDataOutputStream out = hdfs.create(hdfsFile);//Generate HDFS stream
         	      for(int i = 0; i < inputFiles.length; i ++){  
         	            System.out.println(inputFiles[i].getPath().getName());
         	            String extensionName = getExtensionName(inputFiles[i].getPath().getName()).toLowerCase();
         	            System.out.println(extensionName);
         	            if (extensionName.equals("sai")){
-        	            FSDataInputStream in = hdfs.open(inputFiles[i].getPath());//打开本地输入流  
+        	            FSDataInputStream in = hdfs.open(inputFiles[i].getPath());//open local input stream  
         	            byte[] buffer = new byte[256];  
         	            int bytesRead = 0;  
         	            while((bytesRead = in.read(buffer))>0){  
-        	            out.write(buffer,0,bytesRead);//通过一个循环来写入  
+        	            out.write(buffer,0,bytesRead);// write the file by using a loop 
         	            }
         	            in.close();
         	        }     
