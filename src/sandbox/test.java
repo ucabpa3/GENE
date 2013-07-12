@@ -1,11 +1,8 @@
 package sandbox;
 
-import BWA.BWAIndexMapper;
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import genelab.Conf;
+
+import java.io.*;
 
 /**
  * Created with IntelliJ IDEA.
@@ -15,38 +12,26 @@ import java.io.PrintStream;
  * To change this template use File | Settings | File Templates.
  */
 public class test {
-    public static void main(String[] args) throws Exception {
-//        String temp = "/Users/yukun/genelab/bwa aln /Users/yukun/genelab/reference.fa /Users/yukun/genelab/input.fq > /Users/yukun/genelab/2.sai";
-//        System.out.println(temp);
-        //String[] temp = {"/Users/costas/genelab/bwa aln -f /Users/costas/genelab/reference.fa /User/costas/genelab/input.fq "};
-
-        /*Process p = Runtime.getRuntime().exec("/Users/costas/genelab/bwa aln /Users/costas/genelab/reference.fa /Users/costas/genelab/input.fq");
+    public static String runCommand(String command) throws IOException, InterruptedException {
+        String result = "";
+        Process p = Runtime.getRuntime().exec(command);
         p.waitFor();
-        InputStream is = p.getInputStream();
-        InputStreamReader isr = new InputStreamReader(is);
-        BufferedReader br = new BufferedReader(isr);
 
         InputStream er = p.getErrorStream();
         InputStreamReader err = new InputStreamReader(er);
         BufferedReader br_err = new BufferedReader(err);
-        String line;
         String error;
-        while ((line = br.readLine()) != null) {
-            //Outputs your process execution
-            System.out.println("Line:" + line);
-        }
 
         while ((error = br_err.readLine()) != null) {
-            //Outputs your process execution
-            System.out.println(error);
+            result += error + "\n";
         }
-        
-         OutputStream outputStream = p.getOutputStream();
-            PrintStream printStream = new PrintStream(outputStream);
-            System.out.println("printing output");
-            printStream.println();
-            printStream.flush();
-            printStream.close();
-        System.out.println("exit value: " + p.exitValue());*/
+        System.out.println(result);
+        return result;
+    }
+
+    public static void main(String[] args) throws Exception {
+        File workingDir = new File(System.getProperty("user.home"));
+        System.out.println( workingDir.getAbsolutePath());
+// runCommand("/Users/yukun/Desktop/test/bwa sampe /Users/yukun/genelab/reference.fa /Users/yukun/Desktop/test/t1.fq ");
     }
 }

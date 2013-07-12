@@ -12,7 +12,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.util.StringUtils;
 
 /**
  *
@@ -20,9 +19,9 @@ import org.apache.hadoop.util.StringUtils;
  */
 public class BWAIndexMapper extends Mapper<Object, Text, Text, Text>{
     
-    private String bwa = Conf.BWADIR;
-    private File refDir = new File(Conf.REFERENCE);
-    String mainDir = Conf.MAINDIR;
+    private String bwa = Conf.PATH_BWA;
+    private File refDir = new File(Conf.PATH_REFERENCE);
+    String mainDir = Conf.PATH_MAIN;
     
     @Override
     public void map(Object key, Text value, Mapper.Context context)

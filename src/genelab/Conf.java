@@ -11,13 +11,13 @@ package genelab;
  */
 public class Conf {
     
-    public static int N_LINES_PER_CHUNKS=4;
+    public static int N_LINES_PER_CHUNKS=40;
     public static int MAX_LINE_LENGTH=Integer.MAX_VALUE;
     
     /*LOCAL PATHS*/
-    public static String MAINDIR = "/Users/costas/genelab/";
-    public static String BWADIR = MAINDIR + "bwa";
-    public static String REFERENCE = MAINDIR + "reference";
+    public static String PATH_MAIN = "/Users/yukun/"+"genelab/";
+    public static String PATH_BWA = PATH_MAIN;
+    public static String PATH_REFERENCE = PATH_MAIN + "reference/";
     
     /*HDFS PATHS*/
     public static String BWAHDFS = "/user/costas/bwa";

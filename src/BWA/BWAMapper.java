@@ -18,7 +18,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 /**
@@ -28,7 +27,7 @@ import org.apache.hadoop.mapreduce.Mapper;
 public class BWAMapper extends Mapper<Object, Text, Text, Text>{
    
     static Integer fileID = 1;
-    String mainDir = Conf.MAINDIR;
+    String mainDir = Conf.PATH_MAIN;
     
     public void map(Object key, Text value, Context context)
                 throws IOException, InterruptedException {
@@ -62,7 +61,7 @@ public class BWAMapper extends Mapper<Object, Text, Text, Text>{
 			bw.close();   
                        
                         
-        String executable = Conf.BWADIR;
+        String executable = Conf.PATH_BWA;
                 
         String result = "";
         
@@ -80,7 +79,7 @@ public class BWAMapper extends Mapper<Object, Text, Text, Text>{
         
         
             //Process p = Runtime.getRuntime().exec(executable +" aln -f "+fileID+".sai" + mainDir+"input.fq", empty , workingDir);
-            /*Process p = Runtime.getRuntime().exec(executable + " "+" aln -f"+fileID+" "+" /Users/costas/genelab/reference.fa " + mainDir+"input.fq");
+            Process p = Runtime.getRuntime().exec(executable + " "+" aln -f"+fileID+" "+" /Users/costas/genelab/reference.fa " + mainDir+"input.fq");
             
             InputStream is = p.getInputStream();
             InputStreamReader isr = new InputStreamReader(is);

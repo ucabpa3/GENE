@@ -20,7 +20,7 @@ import org.apache.hadoop.mapreduce.lib.jobcontrol.ControlledJob;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
 import sandbox.FQInputFormat;
-import sandbox.WholeFileInputFormat;
+//import sandbox.WholeFileInputFormat;
 
 /**
  *
@@ -51,7 +51,7 @@ public class GENE{
         Configuration indexConf = new Configuration();
         Job index = new Job(indexConf, "index");
         
-        index.setInputFormatClass(WholeFileInputFormat.class);
+       // index.setInputFormatClass(WholeFileInputFormat.class);
 
         index.setJarByClass(GENE.class);
         index.setNumReduceTasks(0);
