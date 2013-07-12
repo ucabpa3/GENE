@@ -1,4 +1,4 @@
-package sandbox;
+package InputFormat;
 
 import genelab.Conf;
 import org.apache.hadoop.conf.Configuration;

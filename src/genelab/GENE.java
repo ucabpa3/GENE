@@ -7,32 +7,27 @@ package genelab;
 import BWA.BWAIndexMapper;
 import BWA.BWAMapper;
 import BWA.BWAReducer;
-import java.io.IOException;
+import InputFormat.FQInputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.lib.jobcontrol.JobControl;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.jobcontrol.ControlledJob;
+import org.apache.hadoop.mapreduce.lib.jobcontrol.JobControl;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.util.GenericOptionsParser;
-import sandbox.FQInputFormat;
 //import sandbox.WholeFileInputFormat;
 
 /**
- *
  * @author costas
  */
-public class GENE{
+public class GENE {
 
     /**
      * @param args the command line arguments
      */
-    
-    public static void main(String[] args) throws Exception{
+
+    public static void main(String[] args) throws Exception {
         // TODO code application logic here
         
         /*String[] otherArgs = new GenericOptionsParser(alignConf, args).getRemainingArgs();
@@ -41,17 +36,17 @@ public class GENE{
             System.err.println("Usage: GENE  <in> <out>");
             System.exit(2);
         }*/
-        
+
         Path input = new Path(args[0]);
         Path output = new Path(args[1]);
-        
+
         JobControl jbcntrl = new JobControl("controller");
         System.out.println("What the hell?");
         /// Index job
         Configuration indexConf = new Configuration();
         Job index = new Job(indexConf, "index");
-        
-       // index.setInputFormatClass(WholeFileInputFormat.class);
+
+        // index.setInputFormatClass(WholeFileInputFormat.class);
 
         index.setJarByClass(GENE.class);
         index.setNumReduceTasks(0);
@@ -59,16 +54,16 @@ public class GENE{
         index.setOutputKeyClass(Text.class);
         index.setOutputValueClass(Text.class);
         FileInputFormat.addInputPath(index, input);
-        FileOutputFormat.setOutputPath(index, output); 
+        FileOutputFormat.setOutputPath(index, output);
         ControlledJob indexControl = new ControlledJob(indexConf);
         indexControl.setJob(index);
-        
+
         jbcntrl.addJob(indexControl);
-        
+
         ///Align job
         Configuration alignConf = new Configuration();
         Job align = new Job(alignConf, "align");
-        
+
         align.setInputFormatClass(FQInputFormat.class);
 
         align.setJarByClass(GENE.class);
@@ -81,32 +76,32 @@ public class GENE{
         ControlledJob alignControl = new ControlledJob(alignConf);
         alignControl.setJob(align);
         alignControl.addDependingJob(indexControl);
-        
+
         jbcntrl.addJob(alignControl);
-         
+
         Thread jobControlThread = new Thread(jbcntrl);
         jobControlThread.start();
-        
- while( !jbcntrl.allFinished())
-    {
-      System.out.println("Jobs in waiting state: "
-        + jbcntrl.getWaitingJobList().size());
-      System.out.println("Jobs in ready state: "
-        + jbcntrl.getReadyJobsList().size());
-      System.out.println("Jobs in running state: "
-        + jbcntrl.getRunningJobList().size());
-      System.out.println("Jobs in success state: "
-        + jbcntrl.getSuccessfulJobList().size());
-      System.out.println("Jobs in failed state: "
-        + jbcntrl.getFailedJobList().size());
-      //sleep 5 seconds
-      try {
-        Thread.sleep(5000);
-      } catch (Exception e) {  }
+
+        while (!jbcntrl.allFinished()) {
+            System.out.println("Jobs in waiting state: "
+                    + jbcntrl.getWaitingJobList().size());
+            System.out.println("Jobs in ready state: "
+                    + jbcntrl.getReadyJobsList().size());
+            System.out.println("Jobs in running state: "
+                    + jbcntrl.getRunningJobList().size());
+            System.out.println("Jobs in success state: "
+                    + jbcntrl.getSuccessfulJobList().size());
+            System.out.println("Jobs in failed state: "
+                    + jbcntrl.getFailedJobList().size());
+            //sleep 5 seconds
+            try {
+                Thread.sleep(5000);
+            } catch (Exception e) {
+            }
+        }
+
+        //done
+        System.exit(0);
     }
- 
-    //done
-    System.exit(0);
-    }
-      
+
 }
