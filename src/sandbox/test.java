@@ -1,7 +1,5 @@
 package sandbox;
 
-import genelab.Conf;
-
 import java.io.*;
 
 /**
@@ -31,7 +29,9 @@ public class test {
 
     public static void main(String[] args) throws Exception {
         File workingDir = new File(System.getProperty("user.home"));
-        System.out.println( workingDir.getAbsolutePath());
+        System.out.println(workingDir.getAbsolutePath());
+        String test = "@SQ\tSN:chr10\tLN:135534747";
+        System.out.println(test.substring(0, 1));
 // runCommand("/Users/yukun/Desktop/test/bwa sampe /Users/yukun/genelab/reference.fa /Users/yukun/Desktop/test/t1.fq ");
     }
 }

@@ -47,12 +47,10 @@ public class FQSplitterTest {
         }
     }
 
-    public static class FQSplitterReducer extends Reducer<LongWritable, Text, LongWritable, Text> {
-        String mainDir = Conf.PATH_MAIN;
+    public static class FQSplitterReducer extends Reducer<LongWritable, Text, String, String> {
 
         @Override
         public void reduce(LongWritable key, Iterable<Text> value, Context context) throws IOException, InterruptedException {
-            Configuration conf = new Configuration();
             File workingDir = new File(Conf.PATH_MAIN + context.getJobID().toString());
             //create working folder
             System.out.println(workingDir.getAbsolutePath());
@@ -74,14 +72,11 @@ public class FQSplitterTest {
 
                 }
                 System.out.println("inPath: " + inPath);
-                System.out.println(in);
                 File file = new File(inPath);
                 if (!file.exists()) {
                     file.createNewFile();
                     FileWriter fw = new FileWriter(file.getAbsoluteFile());
                     BufferedWriter bw = new BufferedWriter(fw);
-                    System.out.println("in: " + in.length());
-                    System.out.println("name: " + (name + "\n").length());
                     bw.write(in, (name + "\n").length(), in.length() - (name + "\n").length());
                     bw.close();
                 }
@@ -107,13 +102,15 @@ public class FQSplitterTest {
             String output = "";
             while ((line = br.readLine()) != null) {
                 //Outputs your process execution
-                System.out.println("Line:" + line);
-                output = output + line + "\n";
+//                System.out.println("Line:" + line);
+                if (!(line.substring(0, 1)).equals("@") && key.toString().equals("1")) {
+                    output = output + line + "\n";
+                }
             }
 
             while ((error = br_err.readLine()) != null) {
                 //Outputs your process execution
-                System.out.println("Error:" + error);
+                System.out.println("Terminal: " + error);
             }
 
             OutputStream outputStream = p.getOutputStream();
@@ -121,7 +118,9 @@ public class FQSplitterTest {
             printStream.println();
             printStream.flush();
             printStream.close();
-
+            System.out.println(output.length());
+            System.out.println(output.length() - "\n".length());
+            context.write("", output.substring(0, output.length() - "\n".length()));
         }
     }
 
