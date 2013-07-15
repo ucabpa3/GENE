@@ -35,18 +35,30 @@ public class GENE{
     public static void main(String[] args) throws Exception{
         // TODO code application logic here
         
-        /*String[] otherArgs = new GenericOptionsParser(alignConf, args).getRemainingArgs();
+        Path input = new Path(args[0]);
+        Path output = new Path(args[1]);
+        
+        Configuration conf= new Configuration();
+        String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
         
         if (otherArgs.length < 2) {
             System.err.println("Usage: GENE  <in> <out>");
             System.exit(2);
-        }*/
+        }
         
-        Path input = new Path(args[0]);
-        Path output = new Path(args[1]);
+        Job job = new Job(conf,"align");
+        job.setInputFormatClass(WholeFileInputFormat.class);
+
+        job.setJarByClass(GENE.class);
+        job.setNumReduceTasks(0);
+        job.setMapperClass(BWAIndexMapper.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+        FileInputFormat.addInputPath(job, input);
+        FileOutputFormat.setOutputPath(job, output);
         
-        JobControl jbcntrl = new JobControl("controller");
-        System.out.println("What the hell?");
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
+       /* JobControl jbcntrl = new JobControl("controller");
         /// Index job
         Configuration indexConf = new Configuration();
         Job index = new Job(indexConf, "index");
@@ -64,7 +76,7 @@ public class GENE{
         indexControl.setJob(index);
         
         jbcntrl.addJob(indexControl);
-        
+        System.out.println("Added job 1");
         ///Align job
         Configuration alignConf = new Configuration();
         Job align = new Job(alignConf, "align");
@@ -80,11 +92,12 @@ public class GENE{
         FileOutputFormat.setOutputPath(align, new Path(args[3]));
         ControlledJob alignControl = new ControlledJob(alignConf);
         alignControl.setJob(align);
+        System.out.println("Added job 2");
         alignControl.addDependingJob(indexControl);
         
         jbcntrl.addJob(alignControl);
          
-        Thread jobControlThread = new Thread(jbcntrl);
+        Thread jobControlThread =new Thread(jbcntrl);
         jobControlThread.start();
         
  while( !jbcntrl.allFinished())
@@ -106,7 +119,7 @@ public class GENE{
     }
  
     //done
-    System.exit(0);
+    System.exit(0);*/
     }
       
 }
