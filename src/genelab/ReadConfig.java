@@ -1,6 +1,8 @@
 import java.io.File;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -28,16 +30,37 @@ public class ReadConfig {
 			DocumentBuilder builder = factory.newDocumentBuilder();
 			Document doc = builder.parse(f);
 			NodeList nl = doc.getElementsByTagName("bwa-config");
+			
+			if (!Integer.valueOf(doc
+					.getElementsByTagName("N_LINES_PER_CHUNKS").item(0)
+					.getFirstChild().getNodeValue()).equals(""))
+			{
 			N_LINES_PER_CHUNKS = Integer.valueOf(doc
 					.getElementsByTagName("N_LINES_PER_CHUNKS").item(0)
 					.getFirstChild().getNodeValue());
+			}
+			
+			if (!doc.getElementsByTagName("PATH_MAIN").item(0)
+					.getFirstChild().getNodeValue().equals(""))
+			{
 			PATH_MAIN = doc.getElementsByTagName("PATH_MAIN").item(0)
 					.getFirstChild().getNodeValue();
 			PATH_BWA = PATH_MAIN;
+			}
+			
+			if (!doc.getElementsByTagName("PATH_REFERENCE").item(0)
+					.getFirstChild().getNodeValue().equals(""))
+			{
 			PATH_REFERENCE = doc.getElementsByTagName("PATH_REFERENCE").item(0)
 					.getFirstChild().getNodeValue();
+			}
+			
+			if (!doc.getElementsByTagName("BWAHDFS").item(0)
+					.getFirstChild().getNodeValue().equals(""))
+			{
 			BWAHDFS = doc.getElementsByTagName("BWAHDFS").item(0)
 					.getFirstChild().getNodeValue();
+			}
 			System.out.println(N_LINES_PER_CHUNKS);
 			System.out.println(PATH_MAIN);
 			System.out.println(PATH_BWA);
