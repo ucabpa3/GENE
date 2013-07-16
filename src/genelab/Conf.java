@@ -10,6 +10,7 @@ package genelab;
  */
 public class Conf {
 
+    public static String PACKAGE_VERSION = "0.1";
     public static int N_LINES_PER_CHUNKS = 40;
     public static int MAX_LINE_LENGTH = Integer.MAX_VALUE;
     /*LOCAL PATHS*/
