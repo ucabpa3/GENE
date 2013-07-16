@@ -42,18 +42,18 @@ public class Main {
         System.err.println("Note: To use BWA, you need to first index the genome with `bwa index'. There are" +
                 " three alignment algorithms in BWA: `mem', `bwasw' and `aln/samse/sampe'. If you are not sure" +
                 " which to use, try `bwa mem' first. Please `man ./bwa.1' for for the manual.");
+        System.exit(2);
     }
 
     public static void main(String[] args) throws Exception {
         if (args.length < 1) {
             Main.usage();
-            System.exit(2);
         }
         if (args[0].equals("mem")) {
             new Main().mem(args);
         }
         if (args[0].equals("backtrak")) {
-
+            new Main().backtrack(args);
         }
 
 
@@ -62,6 +62,8 @@ public class Main {
     public void mem(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
         if (args.length < 4) {
             System.err.println("Usage:  hadoop jar Gen.jar mem <reference name> <input folder> <output folder>");
+            System.exit(2);
+
         }
         conf.set("reference", args[1]);
         String input = args[2];
@@ -80,6 +82,7 @@ public class Main {
     public void backtrack(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
         if (args.length < 4) {
             System.err.println("Usage:  hadoop jar Gen.jar backtrack <reference name> <input folder> <output folder>");
+            System.exit(2);
         }
         conf.set("reference", args[1]);
         String input = args[2];
