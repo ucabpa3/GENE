@@ -7,7 +7,7 @@ package genelab;
 import BWA.BWAIndexMapper;
 import BWA.BWAMapper;
 import BWA.BWAReducer;
-import InputFormat.FQInputFormat;
+import inputFormat.FQInputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;

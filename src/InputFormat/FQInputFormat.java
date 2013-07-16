@@ -1,4 +1,4 @@
-package InputFormat;
+package inputFormat;
 
 import genelab.Conf;
 import org.apache.hadoop.conf.Configuration;
@@ -110,7 +110,7 @@ public class FQInputFormat extends FileInputFormat<LongWritable, Text> {
                 value.set(name.substring(0, name.indexOf(".")));
                 value.append(endLine.getBytes(), 0, endLine.getLength());
 
-                int newSize = 0;
+                int newSize;
                 for (int i = 0; i < NLINESTOPROCESS - 1; i++) {
                     Text v = new Text();
                     while (pos < end) {

@@ -10,11 +10,10 @@ import java.util.Arrays;
 
 /**
  * User: yukun
- * Date: 12/07/2013
- * Time: 14:02
+ * Date: 15/07/2013
+ * Time: 15:04
  */
-
-public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
+public class BWAbtReducer extends Reducer<LongWritable, Text, String, String> {
 
     @Override
     public void reduce(LongWritable key, Iterable<Text> value, Context context) throws IOException, InterruptedException {
@@ -49,17 +48,25 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
             }
         }
 
-        //start to run command
+        //aln
+        if (inputPath[1] == null || inputPath.equals("")) {
+            aln(inputPath[0]);
+        } else {
+            Arrays.sort(inputPath);
+            aln(inputPath[0]);
+            aln(inputPath[1]);
+        }
+
+        //sampe
         String bwa = Conf.PATH_BWA + "bwa";
         String command;
         if (inputPath[1] == null || inputPath.equals("")) {
-            command = bwa + " mem " + Conf.PATH_REFERENCE + "reference.fa "
-                    + " " + inputPath[0];
+            command = bwa + " samse " + Conf.PATH_REFERENCE + "reference.fa " + inputPath[0] + ".sai " + inputPath[0];
         } else {
-            Arrays.sort(inputPath);
-            command = bwa + " mem " + Conf.PATH_REFERENCE + "reference.fa "
-                    + " " + inputPath[0] + " " + inputPath[1];
+            command = bwa + " sampe " + Conf.PATH_REFERENCE + "reference.fa " + inputPath[0] + ".sai " +
+                    inputPath[1] + ".sai " + inputPath[0] + " " + inputPath[1];
         }
+
         System.out.println("command :" + command);
         Process p = Runtime.getRuntime().exec(command);
 
@@ -98,5 +105,30 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
         if (output.length() - "\n".length() > 0) {
             context.write("", output.substring(0, output.length() - "\n".length()));
         }
+
+    }
+
+    public void aln(String input) throws IOException, InterruptedException {
+        String bwa = Conf.PATH_BWA + "bwa";
+        String command = bwa + " " + "aln" + " -f" + input + ".sai " + Conf.PATH_REFERENCE + "reference.fa "
+                + " " + input;
+        System.out.println("command :" + command);
+        Process p = Runtime.getRuntime().exec(command);
+
+        InputStream er = p.getErrorStream();
+        InputStreamReader err = new InputStreamReader(er);
+        BufferedReader br_err = new BufferedReader(err);
+        String error;
+
+        while ((error = br_err.readLine()) != null) {
+            //Outputs your process execution
+            System.out.println("Terminal: " + error);
+        }
+
+        OutputStream outputStream = p.getOutputStream();
+        PrintStream printStream = new PrintStream(outputStream);
+        printStream.println();
+        printStream.flush();
+        printStream.close();
     }
 }
