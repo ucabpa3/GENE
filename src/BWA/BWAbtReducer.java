@@ -61,9 +61,9 @@ public class BWAbtReducer extends Reducer<LongWritable, Text, String, String> {
         String bwa = Conf.PATH_BWA + "bwa";
         String command;
         if (inputPath[1] == null || inputPath.equals("")) {
-            command = bwa + " samse " + Conf.PATH_REFERENCE + "reference.fa " + inputPath[0] + ".sai " + inputPath[0];
+            command = bwa + " samse " + Conf.PATH_REFERENCE + context.getConfiguration().get("reference") + "/reference.fa " + inputPath[0] + ".sai " + inputPath[0];
         } else {
-            command = bwa + " sampe " + Conf.PATH_REFERENCE + "reference.fa " + inputPath[0] + ".sai " +
+            command = bwa + " sampe " + Conf.PATH_REFERENCE + context.getConfiguration().get("reference") + "/reference.fa " + inputPath[0] + ".sai " +
                     inputPath[1] + ".sai " + inputPath[0] + " " + inputPath[1];
         }
 

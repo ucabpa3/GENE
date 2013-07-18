@@ -19,13 +19,18 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
     @Override
     public void reduce(LongWritable key, Iterable<Text> value, Context context) throws IOException, InterruptedException {
         File workingDir = new File(Conf.PATH_MAIN + context.getJobID().toString() + "_" + key);
-        //create working folder
         System.out.println(workingDir.getAbsolutePath());
-        if (new File(workingDir.getAbsolutePath()).mkdir()) {
+        if (new File(workingDir.getAbsolutePath()).mkdirs()) {
             System.out.println("created the local working directory");
         }
 
-        //write down .fq files
+        Assistant.copyReference(context.getConfiguration());
+        Assistant.copyBWA(context.getConfiguration());
+
+        this.runCommand("ls -l " + Conf.PATH_MAIN);
+        runCommand("ls -l " + Conf.PATH_REFERENCE + context.getConfiguration().get("reference"));
+
+//        write down .fq files
         String inputPath[] = new String[2];
         for (Text v : value) {
             String in = v.toString();
@@ -53,11 +58,11 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
         String bwa = Conf.PATH_BWA + "bwa";
         String command;
         if (inputPath[1] == null || inputPath.equals("")) {
-            command = bwa + " mem " + Conf.PATH_REFERENCE + "reference.fa "
+            command = bwa + " mem " + Conf.PATH_REFERENCE + context.getConfiguration().get("reference") + "/reference.fa "
                     + " " + inputPath[0];
         } else {
             Arrays.sort(inputPath);
-            command = bwa + " mem " + Conf.PATH_REFERENCE + "reference.fa "
+            command = bwa + " mem " + Conf.PATH_REFERENCE + context.getConfiguration().get("reference") + "/reference.fa "
                     + " " + inputPath[0] + " " + inputPath[1];
         }
         System.out.println("command :" + command);
@@ -92,11 +97,38 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
         printStream.close();
 
         //clean working directory
-        Runtime.getRuntime().exec("rm -r " + workingDir.getAbsolutePath());
+        Runtime.getRuntime().exec("rm -r " + workingDir.getAbsolutePath() + " " + Conf.PATH_REFERENCE);
+        this.runCommand("ls -lh " + Conf.PATH_MAIN);
 
         System.out.println("output: " + output.length());
         if (output.length() - "\n".length() > 0) {
             context.write("", output.substring(0, output.length() - "\n".length()));
+        }
+    }
+
+    public void runCommand(String command) throws IOException {
+        System.out.println("command: " + command);
+
+        Process p = Runtime.getRuntime().exec(command);
+
+        InputStream is = p.getInputStream();
+        InputStreamReader isr = new InputStreamReader(is);
+        BufferedReader br = new BufferedReader(isr);
+
+        InputStream er = p.getErrorStream();
+        InputStreamReader err = new InputStreamReader(er);
+        BufferedReader br_err = new BufferedReader(err);
+        String line;
+        String error;
+        String output = "";
+        while ((line = br.readLine()) != null) {
+            //Outputs your process execution
+            System.out.println("output: " + line);
+        }
+
+        while ((error = br_err.readLine()) != null) {
+            //Outputs your process execution
+            System.out.println("Terminal: " + error);
         }
     }
 }

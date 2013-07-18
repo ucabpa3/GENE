@@ -27,8 +27,7 @@ public class Main {
 
     public Main() throws IOException {
         conf = new Configuration();
-        job = new Job(conf, "bwa on hadoop");
-        job.setJarByClass(Main.class);
+
     }
 
     public static void usage() {
@@ -46,6 +45,7 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
+        new Main().mem(args);
         if (args.length < 1) {
             Main.usage();
         }
@@ -66,8 +66,12 @@ public class Main {
 
         }
         conf.set("reference", args[1]);
+        conf.set("mapred.job.reduce.memory.physical.mb", "6000");
+        conf.set("mapred.job.map.memory.physical.mb", "200");
         String input = args[2];
         String output = args[3];
+        job = new Job(conf, "bwa on hadoop");
+        job.setJarByClass(Main.class);
         job.setMapperClass(BWAMapper.class);
         job.setReducerClass(BWAMEMReducer.class);
         job.setInputFormatClass(FQInputFormat.class);
@@ -87,6 +91,8 @@ public class Main {
         conf.set("reference", args[1]);
         String input = args[2];
         String output = args[3];
+        job = new Job(conf, "bwa on hadoop");
+        job.setJarByClass(Main.class);
         job.setMapperClass(BWAMapper.class);
         job.setReducerClass(BWAbtReducer.class);
         job.setInputFormatClass(FQInputFormat.class);
