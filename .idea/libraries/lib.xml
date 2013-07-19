@@ -1,8 +1,13 @@
 <component name="libraryTable">
   <library name="lib">
     <CLASSES>
+<<<<<<< HEAD
       <root url="jar://$PROJECT_DIR$/dist/lib/commons-cli-1.2.jar!/" />
       <root url="jar://$PROJECT_DIR$/dist/lib/hadoop-core-1.1.2.jar!/" />
+=======
+      <root url="jar://$PROJECT_DIR$/lib/commons-cli-1.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/hadoop-core-1.1.2.jar!/" />
+>>>>>>> origin/Yukun
     </CLASSES>
     <JAVADOC />
     <SOURCES />

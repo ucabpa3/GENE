@@ -12,6 +12,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
+<<<<<<< HEAD
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -25,17 +26,26 @@ import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionOutputStream;
 import org.apache.hadoop.io.compress.Compressor;
 import org.apache.hadoop.util.ReflectionUtils;
+=======
+
+>>>>>>> origin/Yukun
 /**
  *
  * @author costas
  */
 public class BWAIndexMapper extends Mapper<Object, Text, Text, Text>{
     
+<<<<<<< HEAD
     private String bwa = Conf.BWADIR;
     private File refDir = new File(Conf.REFERENCE);
     String mainDir = Conf.MAINDIR;
     private static File refIndexRes = new File("/Users/costas/genelab/reference/result/");
     private static String[] exts = {".amb", ".ann", ".bwt", ".pac", ".sa"};
+=======
+    private String bwa = Conf.PATH_BWA;
+    private File refDir = new File(Conf.PATH_REFERENCE);
+    String mainDir = Conf.PATH_MAIN;
+>>>>>>> origin/Yukun
     
     @Override
     public void map(Object key, Text value, Mapper.Context context)
