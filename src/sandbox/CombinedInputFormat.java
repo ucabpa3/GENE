@@ -129,9 +129,12 @@ public class CombinedInputFormat extends CombineFileInputFormat{
                     if (newSize < maxLineLength) {
                         break;
                     }
-                    
+                   
                 }
+                              
             }
+            long delim = pos[j];
+            
             }
            /* Text v = new Text();
             newSize = in[j].readLine(v, maxLineLength, Math.max((int) Math.min(Integer.MAX_VALUE, end[j] - pos[j]), maxLineLength));

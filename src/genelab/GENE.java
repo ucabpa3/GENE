@@ -52,7 +52,7 @@ public class GENE{
         job.setInputFormatClass(CombinedInputFormat.class);
 
         job.setJarByClass(GENE.class);
-        job.setNumReduceTasks(0);
+        //job.setNumReduceTasks(0);
         job.setMapperClass(BWAIndexMapper.class);
         job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);

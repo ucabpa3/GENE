@@ -11,7 +11,7 @@ package genelab;
  */
 public class Conf {
     
-    public static int N_LINES_PER_CHUNKS=4;
+    public static int N_LINES_PER_CHUNKS=5;
     public static int MAX_LINE_LENGTH=Integer.MAX_VALUE;
     
     /*LOCAL PATHS*/
