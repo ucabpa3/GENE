@@ -1,6 +1,0 @@
-<bwa-config>
-<N_LINES_PER_CHUNKS>40</N_LINES_PER_CHUNKS>
-<PATH_MAIN>/Users/yukun/genelab/</PATH_MAIN>
-<PATH_REFERENCE>/Users/yukun/genelab/reference/</PATH_REFERENCE>
-<BWAHDFS>/user/costas/bwa</BWAHDFS>
-</bwa-config>

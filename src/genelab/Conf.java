@@ -6,20 +6,28 @@ package genelab;
  */
 
 /**
- *
  * @author yukuwang
  */
 public class Conf {
-    
-    public static int N_LINES_PER_CHUNKS=5;
-    public static int MAX_LINE_LENGTH=Integer.MAX_VALUE;
-    
+
+    public static String PACKAGE_VERSION = "0.1";
+    public static int N_LINES_PER_CHUNKS = 40;
+    public static int MAX_LINE_LENGTH = Integer.MAX_VALUE;
     /*LOCAL PATHS*/
-    public static String MAINDIR = "/Users/costas/genelab/";
-    public static String BWADIR = MAINDIR + "bwa";
-    public static String REFERENCE = MAINDIR + "reference";
-    
+    public static String PATH_MAIN = "/home/kpaligia/";
+    public static String PATH_BWA = PATH_MAIN;
+    public static String PATH_REFERENCE = PATH_MAIN + "reference/";
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+//    public static String PATH_MAIN = "/Users/yukun/genelab/";
+//    public static String PATH_BWA = PATH_MAIN;
+//    public static String PATH_REFERENCE = PATH_MAIN + "reference/";
+
+
     /*HDFS PATHS*/
-    public static String BWAHDFS = "/user/costas/bwa";
-    
+    public static String HDFS_BWA = "/mapr/mapr-m3-student/myvolume/genelab/bwa";
+    public static String HDFS_REFERENCE = "/mapr/mapr-m3-student/myvolume/genelab/reference/";
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//    public static String HDFS_BWA = "/user/yukun/bwa";
+//    public static String HDFS_REFERENCE = "/user/yukun/reference/";
 }
