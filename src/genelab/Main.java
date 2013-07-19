@@ -66,8 +66,8 @@ public class Main {
 
         }
         conf.set("reference", args[1]);
-        conf.set("mapred.job.reduce.memory.physical.mb", "6000");
-        conf.set("mapred.job.map.memory.physical.mb", "200");
+        //conf.set("mapred.job.reduce.memory.physical.mb", "6000");
+        //conf.set("mapred.job.map.memory.physical.mb", "200");
         String input = args[2];
         String output = args[3];
         job = new Job(conf, "bwa on hadoop");
@@ -78,6 +78,7 @@ public class Main {
         job.setOutputKeyClass(LongWritable.class);
         job.setOutputValueClass(Text.class);
         job.setOutputFormatClass(NoKeyOutputFormat.class);
+        job.setNumReduceTasks(3);
         FileInputFormat.addInputPath(job, new Path(input));
         FileOutputFormat.setOutputPath(job, new Path(output));
         System.exit(job.waitForCompletion(true) ? 0 : 1);

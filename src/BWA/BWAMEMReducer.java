@@ -97,7 +97,8 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
         printStream.close();
 
         //clean working directory
-        Runtime.getRuntime().exec("rm -r " + workingDir.getAbsolutePath() + " " + Conf.PATH_REFERENCE);
+//        Runtime.getRuntime().exec("rm -r " + workingDir.getAbsolutePath() + " " + Conf.PATH_REFERENCE);
+        Runtime.getRuntime().exec("rm -r " + workingDir.getAbsolutePath());
         this.runCommand("ls -lh " + Conf.PATH_MAIN);
 
         System.out.println("output: " + output.length());
@@ -107,6 +108,7 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
     }
 
     public void runCommand(String command) throws IOException {
+        System.out.println("");
         System.out.println("command: " + command);
 
         Process p = Runtime.getRuntime().exec(command);
