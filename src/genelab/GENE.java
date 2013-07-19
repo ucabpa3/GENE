@@ -19,6 +19,7 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.jobcontrol.ControlledJob;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.GenericOptionsParser;
+import sandbox.CombinedInputFormat;
 import sandbox.FQInputFormat;
 import sandbox.WholeFileInputFormat;
 
@@ -47,7 +48,8 @@ public class GENE{
         }
         
         Job job = new Job(conf,"align");
-        job.setInputFormatClass(WholeFileInputFormat.class);
+        //job.setInputFormatClass(WholeFileInputFormat.class);
+        job.setInputFormatClass(CombinedInputFormat.class);
 
         job.setJarByClass(GENE.class);
         job.setNumReduceTasks(0);

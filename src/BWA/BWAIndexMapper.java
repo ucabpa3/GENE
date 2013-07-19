@@ -40,8 +40,9 @@ public class BWAIndexMapper extends Mapper<Object, Text, Text, Text>{
     @Override
     public void map(Object key, Text value, Mapper.Context context)
                 throws IOException, InterruptedException {
-        
-            Configuration conf = new Configuration();
+        System.out.println("key : " + key.toString());
+        System.out.println("Value:  "+value.toString());
+           /* Configuration conf = new Configuration();
             FileSystem hdfsFileSystem = FileSystem.get(conf);
             
             String in = value.toString();
@@ -136,7 +137,7 @@ public class BWAIndexMapper extends Mapper<Object, Text, Text, Text>{
             Path res = new Path(refDir.toString()+"/reference"+ext+".gz");
             System.out.println("Copy : " + res.toString());
             hdfsFileSystem.copyFromLocalFile( res , refResOnHDFS);
-        }
+        }*/
        
     }
 }
