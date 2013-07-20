@@ -62,7 +62,7 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
                     + " " + inputPath[0];
         } else {
             Arrays.sort(inputPath);
-            command = bwa + " mem " + Conf.PATH_REFERENCE + context.getConfiguration().get("reference") + "/reference.fa "
+            command = bwa + " mem -t 2 " + Conf.PATH_REFERENCE + context.getConfiguration().get("reference") + "/reference.fa "
                     + " " + inputPath[0] + " " + inputPath[1];
         }
         System.out.println("command :" + command);

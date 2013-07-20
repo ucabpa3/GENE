@@ -78,7 +78,6 @@ public class Main {
         job.setOutputKeyClass(LongWritable.class);
         job.setOutputValueClass(Text.class);
         job.setOutputFormatClass(NoKeyOutputFormat.class);
-        job.setNumReduceTasks(3);
         FileInputFormat.addInputPath(job, new Path(input));
         FileOutputFormat.setOutputPath(job, new Path(output));
         System.exit(job.waitForCompletion(true) ? 0 : 1);

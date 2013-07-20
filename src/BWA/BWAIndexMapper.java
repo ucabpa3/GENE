@@ -31,9 +31,9 @@ import org.apache.hadoop.util.ReflectionUtils;
  */
 public class BWAIndexMapper extends Mapper<Object, Text, Text, Text>{
     
-    private String bwa = Conf.BWADIR;
-    private File refDir = new File(Conf.REFERENCE);
-    String mainDir = Conf.MAINDIR;
+    private String bwa = Conf.PATH_BWA;
+    private File refDir = new File(Conf.PATH_REFERENCE);
+    String mainDir = Conf.PATH_MAIN;
     private static File refIndexRes = new File("/Users/costas/genelab/reference/result/");
     private static String[] exts = {".amb", ".ann", ".bwt", ".pac", ".sa"};
     
