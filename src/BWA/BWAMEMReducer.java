@@ -27,8 +27,7 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
         Assistant.copyReference(context.getConfiguration());
         Assistant.copyBWA(context.getConfiguration());
 
-        this.runCommand("ls -l " + Conf.PATH_MAIN);
-        runCommand("ls -l " + Conf.PATH_REFERENCE + context.getConfiguration().get("reference"));
+        this.runCommand("rm -r job_*");
 
 //        write down .fq files
         String inputPath[] = new String[2];
@@ -43,7 +42,7 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
                 inputPath[1] = inPath;
 
             }
-            System.out.println("inPath: " + inPath);
+//            System.out.println("inPath: " + inPath);
             File file = new File(inPath);
             if (!file.exists()) {
                 file.createNewFile();
@@ -62,7 +61,7 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
                     + " " + inputPath[0];
         } else {
             Arrays.sort(inputPath);
-            command = bwa + " mem -t 2 " + Conf.PATH_REFERENCE + context.getConfiguration().get("reference") + "/reference.fa "
+            command = bwa + " mem -t 1 " + Conf.PATH_REFERENCE + context.getConfiguration().get("reference") + "/reference.fa "
                     + " " + inputPath[0] + " " + inputPath[1];
         }
         System.out.println("command :" + command);
@@ -94,14 +93,18 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
         PrintStream printStream = new PrintStream(outputStream);
         printStream.println();
         printStream.flush();
+        er.close();
+        err.close();
+        br.close();
+        br_err.close();
+        outputStream.close();
         printStream.close();
 
         //clean working directory
 //        Runtime.getRuntime().exec("rm -r " + workingDir.getAbsolutePath() + " " + Conf.PATH_REFERENCE);
         Runtime.getRuntime().exec("rm -r " + workingDir.getAbsolutePath());
-        this.runCommand("ls -lh " + Conf.PATH_MAIN);
+//        runCommand("ls -lh " + Conf.PATH_MAIN);
 
-        System.out.println("output: " + output.length());
         if (output.length() - "\n".length() > 0) {
             context.write("", output.substring(0, output.length() - "\n".length()));
         }
@@ -112,25 +115,31 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
         System.out.println("command: " + command);
 
         Process p = Runtime.getRuntime().exec(command);
-
-        InputStream is = p.getInputStream();
-        InputStreamReader isr = new InputStreamReader(is);
-        BufferedReader br = new BufferedReader(isr);
-
-        InputStream er = p.getErrorStream();
-        InputStreamReader err = new InputStreamReader(er);
-        BufferedReader br_err = new BufferedReader(err);
-        String line;
-        String error;
-        String output = "";
-        while ((line = br.readLine()) != null) {
-            //Outputs your process execution
-            System.out.println("output: " + line);
-        }
-
-        while ((error = br_err.readLine()) != null) {
-            //Outputs your process execution
-            System.out.println("Terminal: " + error);
-        }
+//
+//        InputStream is = p.getInputStream();
+//        InputStreamReader isr = new InputStreamReader(is);
+//        BufferedReader br = new BufferedReader(isr);
+//
+//        InputStream er = p.getErrorStream();
+//        InputStreamReader err = new InputStreamReader(er);
+//        BufferedReader br_err = new BufferedReader(err);
+//        String line;
+//        String error;
+//        String output = "";
+//        while ((line = br.readLine()) != null) {
+//            //Outputs your process execution
+//            System.out.println("output: " + line);
+//        }
+//
+//        while ((error = br_err.readLine()) != null) {
+//            //Outputs your process execution
+//            System.out.println("Terminal: " + error);
+//        }
+//        is.close();
+//        isr.close();
+//        br.close();
+//        er.close();
+//        err.close();
+//        br_err.close();
     }
 }

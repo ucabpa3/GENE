@@ -1,6 +1,20 @@
 package sandbox;
 
-import java.io.*;
+import inputFormat.FQInputFormat;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.IntWritable;
+import org.apache.hadoop.io.LongWritable;
+import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapreduce.Job;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
+import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
+import org.apache.hadoop.mapreduce.lib.input.NLineInputFormat;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.util.GenericOptionsParser;
+
+import java.io.IOException;
 
 /**
  * Created with IntelliJ IDEA.
@@ -10,28 +24,46 @@ import java.io.*;
  * To change this template use File | Settings | File Templates.
  */
 public class test {
-    public static String runCommand(String command) throws IOException, InterruptedException {
-        String result = "";
-        Process p = Runtime.getRuntime().exec(command);
-        p.waitFor();
-
-        InputStream er = p.getErrorStream();
-        InputStreamReader err = new InputStreamReader(er);
-        BufferedReader br_err = new BufferedReader(err);
-        String error;
-
-        while ((error = br_err.readLine()) != null) {
-            result += error + "\n";
+    public static void main(String[] args) throws Exception {
+        Configuration conf = new Configuration();
+        String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
+        if (otherArgs.length != 2) {
+            System.err.println("Usage: wordcount <in> <out>");
+            System.exit(2);
         }
-        System.out.println(result);
-        return result;
+        Job job = new Job(conf, "word count");
+        job.setJarByClass(test.class);
+        job.setMapperClass(MyMapper.class);
+        job.setReducerClass(MyReducer.class);
+        job.setInputFormatClass(FQInputFormat.class);
+        job.setOutputKeyClass(IntWritable.class);
+        job.setOutputValueClass(Text.class);
+        FileInputFormat.addInputPath(job, new Path(otherArgs[0]));
+        FileOutputFormat.setOutputPath(job, new Path(otherArgs[1]));
+        System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 
-    public static void main(String[] args) throws Exception {
-        File workingDir = new File(System.getProperty("user.home"));
-        System.out.println(workingDir.getAbsolutePath());
-        String test = "@SQ\tSN:chr10\tLN:135534747";
-        System.out.println(test.substring(0, 1));
-// runCommand("/Users/yukun/Desktop/test/bwa sampe /Users/yukun/genelab/reference.fa /Users/yukun/Desktop/test/t1.fq ");
+    public static class MyMapper extends Mapper<LongWritable, Text, IntWritable, Text> {
+
+        public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
+            System.out.println("key: " + key);
+            System.out.println("value: " + value);
+            System.out.println("~~~~~~~~~~~~~~~~~~~");
+//            context.write(new IntWritable(), v);
+        }
+    }
+
+    public static class MyReducer extends Reducer<IntWritable, Text, Text, IntWritable> {
+
+        private IntWritable result = new IntWritable();
+
+        public void reduce(IntWritable key, Iterable<Text> values,
+                           Context context) throws IOException, InterruptedException {
+            System.out.println(key);
+            for (Text t : values) {
+                System.out.println(t);
+            }
+            System.out.println("~~~~~~~~~~~~~~~~");
+        }
     }
 }
