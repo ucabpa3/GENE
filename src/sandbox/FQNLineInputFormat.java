@@ -97,7 +97,6 @@ public class FQNLineInputFormat extends NLineInputFormat {
             n++;
             Text v = new Text();
             long newSize = lineReader.readLine(v, Conf.MAX_LINE_LENGTH, Math.max((int) Math.min(Integer.MAX_VALUE, end - pos), Conf.MAX_LINE_LENGTH));
-            System.out.println("getLineNumber: " + v);
             if (newSize == 0) {
                 break;
             }

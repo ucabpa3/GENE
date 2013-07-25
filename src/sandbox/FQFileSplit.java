@@ -40,6 +40,8 @@ public class FQFileSplit extends InputSplit implements Writable {
         this.startLine=startLine;
     }
 
+    public FQFileSplit(){}
+
     public long getStartLine(){
         return startLine;
     }

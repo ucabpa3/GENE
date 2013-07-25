@@ -25,6 +25,7 @@ public class Assistant {
             //create working folder
             FileSystem hdfsFileSystem = FileSystem.get(conf);
             Path hdfs = new Path(Conf.HDFS_REFERENCE + refName);
+            System.out.println("hadfs: "+hdfs);
             FileStatus[] status = hdfsFileSystem.listStatus(hdfs);
             for (int i = 0; i < status.length; i++) {
                 System.out.println(status[i].getPath());

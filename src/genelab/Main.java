@@ -12,6 +12,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import outputForamt.NoKeyOutputFormat;
+import sandbox.NoSplitInputFormat;
 
 import java.io.IOException;
 
@@ -70,15 +71,17 @@ public class Main {
         //conf.set("mapred.job.map.memory.physical.mb", "200");
         String input = "/mapr/mapr-m3-student/myvolume/genelab/input/"+args[2];
         String output = "/mapr/mapr-m3-student/myvolume/genelab/"+args[3];
+//        String input = args[2];
+//        String output = args[3];
         job = new Job(conf, "bwa "+Conf.N_LINES_PER_CHUNKS+"lines 12reducers 1processes "+args[1]+" "+args[2]);
         job.setJarByClass(Main.class);
         job.setMapperClass(BWAMapper.class);
         job.setReducerClass(BWAMEMReducer.class);
-        job.setInputFormatClass(FQInputFormat.class);
+        job.setInputFormatClass(NoSplitInputFormat.class);
         job.setOutputKeyClass(LongWritable.class);
         job.setOutputValueClass(Text.class);
         job.setOutputFormatClass(NoKeyOutputFormat.class);
-        job.setNumReduceTasks(3);
+        job.setNumReduceTasks(8);
         FileInputFormat.addInputPath(job, new Path(input));
         FileOutputFormat.setOutputPath(job, new Path(output));
         System.exit(job.waitForCompletion(true) ? 0 : 1);

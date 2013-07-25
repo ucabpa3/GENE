@@ -1,9 +1,7 @@
 package sandbox;
 
-import inputFormat.FQInputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
@@ -30,11 +28,11 @@ public class test {
             System.err.println("Usage: test <in> <out>");
             System.exit(2);
         }
-        conf .set("mapreduce.input.lineinputformat.linespermap","5");
         Job job = new Job(conf, "test");
         job.setJarByClass(test.class);
         job.setMapperClass(MyMapper.class);
         job.setReducerClass(MyReducer.class);
+//        job.setInputFormatClass(NoSplitInputFormat.class);
         job.setInputFormatClass(FQNLineInputFormat.class);
         job.setOutputKeyClass(LongWritable.class);
         job.setOutputValueClass(Text.class);
@@ -44,24 +42,45 @@ public class test {
     }
 
     public static class MyMapper extends Mapper<LongWritable, Text, LongWritable, Text> {
+//        String v;
+//        long k = 0;
+//
+//        protected void setup(Mapper.Context context)
+//                throws IOException,
+//                InterruptedException {
+//            v = context.getCurrentKey().toString() + "\n";
+//        }
 
         public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-            System.out.println("key: " + key);
-            System.out.println("value: " + value);
-            System.out.println("~~~~~~~~~~~~~~~~~~~");
-           context.write(key, value);
+//            k++;
+//            v = v + value + "\n";
+//
+//            if (k % 5 == 0) {
+//                context.write(new LongWritable(k / 5), new Text(v.substring(0,v.length()-1)));
+//                v = context.getCurrentKey().toString() + "\n";
+//            }
+            context.write(key, value);
         }
+
+//        @Override
+//        protected void cleanup(Mapper.Context context)
+//                throws IOException,
+//                InterruptedException {
+//            context.write(new LongWritable(k / 5 + 1), new Text(v.substring(0,v.length()-1)));
+//        }
+
     }
 
     public static class MyReducer extends Reducer<LongWritable, Text, LongWritable, Text> {
 
 
         public void reduce(LongWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-            System.out.println(key);
-            for (Text t : values) {
-                System.out.println(t);
+            if (key.get() == 1) {
+                for (Text t : values) {
+                    System.out.println(t);
+                }
             }
-            System.out.println("~~~~~~~~~~~~~~~~");
+
         }
     }
 }

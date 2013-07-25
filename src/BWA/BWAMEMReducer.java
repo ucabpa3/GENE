@@ -115,31 +115,31 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
         System.out.println("command: " + command);
 
         Process p = Runtime.getRuntime().exec(command);
-//
-//        InputStream is = p.getInputStream();
-//        InputStreamReader isr = new InputStreamReader(is);
-//        BufferedReader br = new BufferedReader(isr);
-//
-//        InputStream er = p.getErrorStream();
-//        InputStreamReader err = new InputStreamReader(er);
-//        BufferedReader br_err = new BufferedReader(err);
-//        String line;
-//        String error;
-//        String output = "";
-//        while ((line = br.readLine()) != null) {
-//            //Outputs your process execution
-//            System.out.println("output: " + line);
-//        }
-//
-//        while ((error = br_err.readLine()) != null) {
-//            //Outputs your process execution
-//            System.out.println("Terminal: " + error);
-//        }
-//        is.close();
-//        isr.close();
-//        br.close();
-//        er.close();
-//        err.close();
-//        br_err.close();
+
+        InputStream is = p.getInputStream();
+        InputStreamReader isr = new InputStreamReader(is);
+        BufferedReader br = new BufferedReader(isr);
+
+        InputStream er = p.getErrorStream();
+        InputStreamReader err = new InputStreamReader(er);
+        BufferedReader br_err = new BufferedReader(err);
+        String line;
+        String error;
+        String output = "";
+        while ((line = br.readLine()) != null) {
+            //Outputs your process execution
+            System.out.println("output: " + line);
+        }
+
+        while ((error = br_err.readLine()) != null) {
+            //Outputs your process execution
+            System.out.println("Terminal: " + error);
+        }
+        is.close();
+        isr.close();
+        br.close();
+        er.close();
+        err.close();
+        br_err.close();
     }
 }
