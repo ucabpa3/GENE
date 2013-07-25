@@ -68,22 +68,22 @@ public class FQInputFormat extends FileInputFormat<LongWritable, Text> {
         @Override
         public void initialize(InputSplit genericSplit, TaskAttemptContext context) throws IOException, InterruptedException {
             FileSplit split = (FileSplit) genericSplit;
-            final Path file = split.getPath();
-            name = file.getName();
+            final Path splitPath = split.getPath();
+            name = splitPath.getName();
 
             Configuration conf = context.getConfiguration();
-            FileSystem fs = file.getFileSystem(conf);
+            FileSystem fs = splitPath.getFileSystem(conf);
             start = split.getStart();
             end = start + split.getLength();
             boolean skipFirstLine = false;
-            FSDataInputStream filein = fs.open(split.getPath());
+            FSDataInputStream fsDataInputStream = fs.open(split.getPath());
 
             if (start != 0) {
                 skipFirstLine = true;
                 --start;
-                filein.seek(start);
+                fsDataInputStream.seek(start);
             }
-            in = new LineReader(filein, conf);
+            in = new LineReader(fsDataInputStream, conf);
             if (skipFirstLine) {
                 start += in.readLine(new Text(), 0, (int) Math.min((long) Integer.MAX_VALUE, end - start));
             }
