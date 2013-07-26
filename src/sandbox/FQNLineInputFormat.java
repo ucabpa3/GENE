@@ -116,9 +116,8 @@ public class FQNLineInputFormat extends NLineInputFormat {
         private long end;
         private LineReader in;
         private int maxLineLength;
-        private LongWritable key = null;
         private Text value = null;
-        private long k;
+        private LongWritable k;
 
         public void initialize(InputSplit genericSplit,
                                TaskAttemptContext context) throws IOException {
@@ -126,7 +125,7 @@ public class FQNLineInputFormat extends NLineInputFormat {
             Configuration job = context.getConfiguration();
             this.maxLineLength = job.getInt("mapred.linerecordreader.maxlength",
                     Integer.MAX_VALUE);
-            k=split.getStartLine();
+            k=new LongWritable(split.getSplitNum());
             start = split.getStart();
             end = start + split.getLength();
             final Path file = split.getPath();
@@ -156,11 +155,6 @@ public class FQNLineInputFormat extends NLineInputFormat {
         }
 
         public boolean nextKeyValue() throws IOException {
-            if (key == null) {
-                key = new LongWritable();
-            }
-            key.set(pos);
-            key.set(k);
             if (value == null) {
                 value = new Text();
             }
@@ -182,18 +176,18 @@ public class FQNLineInputFormat extends NLineInputFormat {
                         (pos - newSize));
             }
             if (newSize == 0) {
-                key = null;
+                k = null;
                 value = null;
                 return false;
             } else {
-                k++;
+                k=new LongWritable(k.get()+1);
                 return true;
             }
         }
 
         @Override
         public LongWritable getCurrentKey() {
-            return key;
+            return k;
         }
 
         @Override

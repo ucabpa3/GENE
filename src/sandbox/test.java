@@ -28,12 +28,13 @@ public class test {
             System.err.println("Usage: test <in> <out>");
             System.exit(2);
         }
+        conf.set("mapreduce.input.lineinputformat.linespermap", "10");
         Job job = new Job(conf, "test");
         job.setJarByClass(test.class);
         job.setMapperClass(MyMapper.class);
         job.setReducerClass(MyReducer.class);
 //        job.setInputFormatClass(NoSplitInputFormat.class);
-        job.setInputFormatClass(FQNLineInputFormat.class);
+        job.setInputFormatClass(FQNLineInputFormat2.class);
         job.setOutputKeyClass(LongWritable.class);
         job.setOutputValueClass(Text.class);
         FileInputFormat.addInputPath(job, new Path(otherArgs[0]));
@@ -42,32 +43,24 @@ public class test {
     }
 
     public static class MyMapper extends Mapper<LongWritable, Text, LongWritable, Text> {
-//        String v;
-//        long k = 0;
-//
-//        protected void setup(Mapper.Context context)
-//                throws IOException,
-//                InterruptedException {
-//            v = context.getCurrentKey().toString() + "\n";
-//        }
+        private static String v;
+        private static long k;
 
-        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
-//            k++;
-//            v = v + value + "\n";
-//
-//            if (k % 5 == 0) {
-//                context.write(new LongWritable(k / 5), new Text(v.substring(0,v.length()-1)));
-//                v = context.getCurrentKey().toString() + "\n";
-//            }
-            context.write(key, value);
+        protected void setup(Mapper.Context context) throws IOException, InterruptedException {
+            k=((LongWritable) context.getCurrentKey()).get();
+//            v=context.getInputSplit()
         }
 
-//        @Override
-//        protected void cleanup(Mapper.Context context)
-//                throws IOException,
-//                InterruptedException {
-//            context.write(new LongWritable(k / 5 + 1), new Text(v.substring(0,v.length()-1)));
-//        }
+        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+            v = v + value + "\n";
+        }
+
+        @Override
+        protected void cleanup(Mapper.Context context)
+                throws IOException,
+                InterruptedException {
+            context.write(new LongWritable(k), new Text(v.substring(0, v.length() - 1)));
+        }
 
     }
 
@@ -75,11 +68,10 @@ public class test {
 
 
         public void reduce(LongWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-            if (key.get() == 1) {
                 for (Text t : values) {
                     System.out.println(t);
+                    System.out.println();
                 }
-            }
 
         }
     }

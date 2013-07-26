@@ -20,7 +20,7 @@ public class FQFileSplit extends InputSplit implements Writable {
     private Path file;
     private long start;
     private long length;
-    private long startLine;
+    private long splitNum;
     private String[] hosts;
 
 
@@ -32,18 +32,18 @@ public class FQFileSplit extends InputSplit implements Writable {
      * @param length the number of bytes in the file to process
      * @param hosts the list of hosts containing the block, possibly null
      */
-    public FQFileSplit(Path file, long start, long length, String[] hosts,long startLine) {
+    public FQFileSplit(Path file, long start, long length, String[] hosts,long splitNum) {
         this.file = file;
         this.start = start;
         this.length = length;
         this.hosts = hosts;
-        this.startLine=startLine;
+        this.splitNum = splitNum;
     }
 
     public FQFileSplit(){}
 
-    public long getStartLine(){
-        return startLine;
+    public long getSplitNum(){
+        return this.splitNum;
     }
 
     /** The file containing this split's data. */
@@ -68,6 +68,7 @@ public class FQFileSplit extends InputSplit implements Writable {
         Text.writeString(out, file.toString());
         out.writeLong(start);
         out.writeLong(length);
+        out.writeLong(splitNum);
     }
 
     @Override
@@ -75,6 +76,7 @@ public class FQFileSplit extends InputSplit implements Writable {
         file = new Path(Text.readString(in));
         start = in.readLong();
         length = in.readLong();
+        splitNum=in.readLong();
         hosts = null;
     }
 
