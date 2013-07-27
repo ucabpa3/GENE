@@ -35,23 +35,26 @@ public class test {
         job.setReducerClass(MyReducer.class);
 //        job.setInputFormatClass(NoSplitInputFormat.class);
         job.setInputFormatClass(FQNLineInputFormat2.class);
-        job.setOutputKeyClass(LongWritable.class);
+        job.setOutputKeyClass(Text.class);
         job.setOutputValueClass(Text.class);
         FileInputFormat.addInputPath(job, new Path(otherArgs[0]));
         FileOutputFormat.setOutputPath(job, new Path(otherArgs[1]));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 
-    public static class MyMapper extends Mapper<LongWritable, Text, LongWritable, Text> {
+    public static class MyMapper extends Mapper<Text, Text, Text, Text> {
         private static String v;
-        private static long k;
+        private static String k;
 
         protected void setup(Mapper.Context context) throws IOException, InterruptedException {
-            k=((LongWritable) context.getCurrentKey()).get();
+
+            k= context.getCurrentKey().toString();
 //            v=context.getInputSplit()
         }
 
-        public void map(LongWritable key, Text value, Context context) throws IOException, InterruptedException {
+        public void map(Text key, Text value, Context context) throws IOException, InterruptedException {
+            System.out.println("K : " + context.getCurrentKey());
+            System.out.println("V : " + context.getCurrentValue());
             v = v + value + "\n";
         }
 
@@ -59,15 +62,16 @@ public class test {
         protected void cleanup(Mapper.Context context)
                 throws IOException,
                 InterruptedException {
-            context.write(new LongWritable(k), new Text(v.substring(0, v.length() - 1)));
+
+            context.write(new Text(k), new Text(v.substring(0, v.length() - 1)));
         }
 
     }
 
-    public static class MyReducer extends Reducer<LongWritable, Text, LongWritable, Text> {
+    public static class MyReducer extends Reducer<Text, Text, Text, Text> {
 
 
-        public void reduce(LongWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
+        public void reduce(Text key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
                 for (Text t : values) {
                     System.out.println(t);
                     System.out.println();

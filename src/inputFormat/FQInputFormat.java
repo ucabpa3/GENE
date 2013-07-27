@@ -35,7 +35,7 @@ public class FQInputFormat extends FileInputFormat<LongWritable, Text> {
         private long start = 0;
         private long end = 0;
         private long pos = 0;
-        private long keyValue = 1;
+        private long keyValue = 0;
         private int maxLineLength = Conf.MAX_LINE_LENGTH;
         private String name;
 
