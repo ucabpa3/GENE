@@ -47,7 +47,7 @@ import java.util.List;
  */
 @InterfaceAudience.Public
 @InterfaceStability.Stable
-public class FQNLineInputFormat2 extends FileInputFormat<LongWritable, Text> {
+public class FQNLineInputFormat2 extends FileInputFormat<Text, Text> {
     public static final String LINES_PER_MAP =
             "mapreduce.input.lineinputformat.linespermap";
 
@@ -120,7 +120,7 @@ public class FQNLineInputFormat2 extends FileInputFormat<LongWritable, Text> {
         return job.getConfiguration().getInt(LINES_PER_MAP, 1);
     }
 
-    public RecordReader<LongWritable, Text> createRecordReader(
+    public RecordReader<Text, Text> createRecordReader(
             InputSplit genericSplit, TaskAttemptContext context)
             throws IOException {
         context.setStatus(genericSplit.toString());
@@ -144,7 +144,7 @@ public class FQNLineInputFormat2 extends FileInputFormat<LongWritable, Text> {
         return splits;
     }
 
-    private static class FQLineRecordReader extends RecordReader<LongWritable, Text> {
+    private static class FQLineRecordReader extends RecordReader<Text, Text> {
         private static final Log LOG = LogFactory.getLog(FQLineRecordReader.class);
         private CompressionCodecFactory compressionCodecs = null;
         private long start;
@@ -153,7 +153,7 @@ public class FQNLineInputFormat2 extends FileInputFormat<LongWritable, Text> {
         private LineReader in;
         private int maxLineLength;
         private Text value = null;
-        private LongWritable k;
+        private Text k;
 
         public void initialize(InputSplit genericSplit,
                                TaskAttemptContext context) throws IOException {
@@ -161,7 +161,8 @@ public class FQNLineInputFormat2 extends FileInputFormat<LongWritable, Text> {
             Configuration job = context.getConfiguration();
             this.maxLineLength = job.getInt("mapred.linerecordreader.maxlength",
                     Integer.MAX_VALUE);
-            k = new LongWritable(split.getSplitNum());
+//            k = new LongWritable(split.getSplitNum());
+            k = new Text(split.getPath().getName()+"_"+Integer.toString((int) (long) split.getSplitNum()));
             start = split.getStart();
             end = start + split.getLength();
             final Path file = split.getPath();
@@ -219,7 +220,7 @@ public class FQNLineInputFormat2 extends FileInputFormat<LongWritable, Text> {
         }
 
         @Override
-        public LongWritable getCurrentKey() {
+        public Text getCurrentKey() {
             return k;
         }
 

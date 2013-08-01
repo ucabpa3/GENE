@@ -13,31 +13,32 @@ import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.FileSplit;
 import org.apache.hadoop.util.LineReader;
+import sandbox.FQSplitInfo;
 
 import java.io.IOException;
 
 /**
  * @author yukuwang
  */
-public class FQInputFormat extends FileInputFormat<LongWritable, Text> {
+public class FQInputFormat extends FileInputFormat<LongWritable, FQSplitInfo> {
 
     @Override
-    public RecordReader<LongWritable, Text> createRecordReader(InputSplit split, TaskAttemptContext context) {
+    public RecordReader<LongWritable, FQSplitInfo> createRecordReader(InputSplit split, TaskAttemptContext context) {
         return new NLinesRecordReader();
     }
 
-    private static class NLinesRecordReader extends RecordReader<LongWritable, Text> {
+    private static class NLinesRecordReader extends RecordReader<LongWritable, FQSplitInfo> {
 
         private final int NLINESTOPROCESS = Conf.N_LINES_PER_CHUNKS;
         private LineReader in;
         private LongWritable key;
-        private Text value = new Text();
+        private FQSplitInfo value;
         private long start = 0;
         private long end = 0;
         private long pos = 0;
         private long keyValue = 1;
         private int maxLineLength = Conf.MAX_LINE_LENGTH;
-        private String name;
+        private String path;
 
         @Override
         public void close() throws IOException {
@@ -52,7 +53,7 @@ public class FQInputFormat extends FileInputFormat<LongWritable, Text> {
         }
 
         @Override
-        public Text getCurrentValue() throws IOException, InterruptedException {
+        public FQSplitInfo getCurrentValue() throws IOException, InterruptedException {
             return value;
         }
 
@@ -69,7 +70,7 @@ public class FQInputFormat extends FileInputFormat<LongWritable, Text> {
         public void initialize(InputSplit genericSplit, TaskAttemptContext context) throws IOException, InterruptedException {
             FileSplit split = (FileSplit) genericSplit;
             final Path splitPath = split.getPath();
-            name = splitPath.getName();
+            path = splitPath.toString();
 
             Configuration conf = context.getConfiguration();
             FileSystem fs = splitPath.getFileSystem(conf);
@@ -92,47 +93,41 @@ public class FQInputFormat extends FileInputFormat<LongWritable, Text> {
 
         @Override
         public boolean nextKeyValue() throws IOException, InterruptedException {
-            if (end - pos <= 0) {
+            if (key == null) {
+                key = new LongWritable();
+            }
+            key.set(keyValue);
+            if (value == null) {
+                value = new FQSplitInfo();
+            }
+            int newSize = 0;
+            long length=0;
+            long start =pos;
+            for(int i=0;i<NLINESTOPROCESS;i++){
+                Text v = new Text();
+                while (pos < end) {
+                    newSize = in.readLine(v, maxLineLength,Math.max((int)Math.min(Integer.MAX_VALUE, end-pos),maxLineLength));
+                    if (newSize == 0) {
+                        break;
+                    }
+                    length+=newSize;
+                    pos += newSize;
+                    if (newSize < maxLineLength) {
+                        break;
+                    }
+                }
+            }
+
+            if (newSize == 0) {
                 key = null;
                 value = null;
                 return false;
             } else {
-                if (key == null) {
-                    key = new LongWritable();
-                }
-                key.set(keyValue);
-
-                if (value == null) {
-                    value = new Text();
-                }
-
-                final Text endLine = new Text("\n");
-                value.set(name.substring(0, name.indexOf(".")));
-                value.append(endLine.getBytes(), 0, endLine.getLength());
-
-                int newSize;
-                for (int i = 0; i < NLINESTOPROCESS - 1; i++) {
-                    Text v = new Text();
-                    while (pos < end) {
-                        newSize = in.readLine(v, maxLineLength, Math.max((int) Math.min(Integer.MAX_VALUE, end - pos), maxLineLength));
-                        value.append(v.getBytes(), 0, v.getLength());
-                        value.append(endLine.getBytes(), 0, endLine.getLength());
-                        if (newSize == 0) {
-                            break;
-                        }
-                        pos += newSize;
-                        if (newSize < maxLineLength) {
-                            break;
-                        }
-                    }
-                }
-                Text v = new Text();
-                newSize = in.readLine(v, maxLineLength, Math.max((int) Math.min(Integer.MAX_VALUE, end - pos), maxLineLength));
-                value.append(v.getBytes(), 0, v.getLength());
-                pos += newSize;
                 keyValue++;
+                value= new FQSplitInfo(path,start,length);
                 return true;
             }
         }
+
     }
 }
