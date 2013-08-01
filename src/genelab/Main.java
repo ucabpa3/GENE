@@ -5,16 +5,19 @@ import BWA.BWAMapper;
 import BWA.BWAbtReducer;
 import inputFormat.FQInputFormat;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import outputForamt.NoKeyOutputFormat;
 import sandbox.NoSplitInputFormat;
 
-import java.io.IOException;
+import java.io.*;
 
 /**
  * User: yukun
@@ -69,10 +72,10 @@ public class Main {
         conf.set("reference", args[1]);
         //conf.set("mapred.job.reduce.memory.physical.mb", "6000");
         //conf.set("mapred.job.map.memory.physical.mb", "200");
-        String input = "/mapr/mapr-m3-student/myvolume/genelab/input/"+args[2];
-        String output = "/mapr/mapr-m3-student/myvolume/genelab/"+args[3];
-//        String input = args[2];
-//        String output = args[3];
+//        String input = "/mapr/mapr-m3-student/myvolume/genelab/input/"+args[2];
+//        String output = "/mapr/mapr-m3-student/myvolume/genelab/"+args[3];
+        String input = args[2];
+        String output = args[3];
         job = new Job(conf, "bwa "+Conf.N_LINES_PER_CHUNKS+"lines 12reducers 1processes "+args[1]+" "+args[2]);
         job.setJarByClass(Main.class);
         job.setMapperClass(BWAMapper.class);
@@ -80,11 +83,55 @@ public class Main {
         job.setInputFormatClass(NoSplitInputFormat.class);
         job.setOutputKeyClass(LongWritable.class);
         job.setOutputValueClass(Text.class);
-        job.setOutputFormatClass(NoKeyOutputFormat.class);
-        job.setNumReduceTasks(8);
+        //job.setOutputFormatClass(NoKeyOutputFormat.class);
+        //job.setOutputFormatClass(TextOutputFormat.class);
+        //job.setOutputFormatClass(NullOutputFormat.class);
+        MultipleOutputs.addNamedOutput(job,"genefiles", TextOutputFormat.class, Text.class, Text.class);
+        MultipleOutputs.setCountersEnabled(job,false);
+        job.setNumReduceTasks(6);
         FileInputFormat.addInputPath(job, new Path(input));
         FileOutputFormat.setOutputPath(job, new Path(output));
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
+
+        boolean exit = job.waitForCompletion(true);
+        if(exit){
+            merge();
+        }
+
+        System.exit(exit ? 0 : 1);
+    }
+
+    public void merge() throws IOException{
+
+        Configuration conf =  new Configuration();
+        FileSystem hdfsFileSystem = FileSystem.get(conf);
+
+        Path hdfs = new Path("/user/costas/output/gene/");
+        FileStatus[] status = hdfsFileSystem.listStatus(hdfs);
+        Path[] files = FileUtil.stat2Paths(status);
+        try{
+            Path out = new Path("/user/costas/output/gene_merged");
+            FileSystem fs = FileSystem.get(new Configuration());
+
+            BufferedWriter br=new BufferedWriter(new OutputStreamWriter(fs.create(out,true)));
+
+            for (Integer i = 1; i <= status.length; i++) {
+
+                FileStatus[] st =  hdfsFileSystem.globStatus(new Path("/user/costas/output/gene/gene-"+i.toString()+"-*"));
+                Path[] file = FileUtil.stat2Paths(st);
+                BufferedReader in=new BufferedReader(new InputStreamReader(fs.open(file[0])));
+                String line = in.readLine();
+                while (line != null){
+                    br.write(line+"\n");
+                    line=in.readLine();
+                }
+                fs.delete(file[0],true);
+            }
+
+            br.close();
+        }catch(Exception e){
+            System.out.println("File not found");
+        }
+
     }
 
     public void backtrack(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
@@ -107,4 +154,6 @@ public class Main {
         FileOutputFormat.setOutputPath(job, new Path(output));
         System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
+    public interface PathFilter {
+        boolean accept(Path path); }
 }

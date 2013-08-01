@@ -1,9 +1,15 @@
 package BWA;
 
 import genelab.Conf;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
+import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapreduce.Reducer;
+import org .apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
+import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.OutputCollector;
 
 import java.io.*;
 import java.util.Arrays;
@@ -16,10 +22,21 @@ import java.util.Arrays;
 
 public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
 
+    MultipleOutputs mos = null;
+
+    @Override
+    protected void setup(Context context){
+            mos = new MultipleOutputs(context);
+    }
+
     @Override
     public void reduce(LongWritable key, Iterable<Text> value, Context context) throws IOException, InterruptedException {
+
+        Configuration conf = new Configuration();
+        //FileSystem hdfsFileSystem = FileSystem.get(conf);
         File workingDir = new File(Conf.PATH_MAIN + context.getJobID().toString() + "_" + key);
         System.out.println(workingDir.getAbsolutePath());
+
         if (new File(workingDir.getAbsolutePath()).mkdirs()) {
             System.out.println("created the local working directory");
         }
@@ -106,8 +123,16 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
 //        runCommand("ls -lh " + Conf.PATH_MAIN);
 
         if (output.length() - "\n".length() > 0) {
-            context.write("", output.substring(0, output.length() - "\n".length()));
+
+              mos.write("genefiles",key.toString(),output.substring(0, output.length() - "\n".length()),"gene/gene-"+key.toString());
+
+            //context.write("", output.substring(0, output.length() - "\n".length()));
         }
+    }
+
+    @Override
+    protected void cleanup(Context context) throws IOException, InterruptedException {
+        mos.close();
     }
 
     public void runCommand(String command) throws IOException {
@@ -141,5 +166,9 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
         er.close();
         err.close();
         br_err.close();
+    }
+
+    String generateFileName(LongWritable k) {
+        return k.toString();
     }
 }
