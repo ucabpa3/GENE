@@ -7,16 +7,10 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.util.GenericOptionsParser;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 /**
  * User: yukun
@@ -26,24 +20,54 @@ import java.io.IOException;
 @SuppressWarnings("ALL")
 public class test {
     public static void main(String[] args) throws Exception {
-        Configuration conf = new Configuration();
-        String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
-        if (otherArgs.length != 2) {
-            System.err.println("Usage: test <in> <out>");
-            System.exit(2);
+        Process process = Runtime.getRuntime().exec("/Users/yukun/genelab/bwa mem /Users/yukun/genelab/reference/smallRef/reference.fa /Users/yukun/genelab/1.fq /Users/yukun/genelab/2.fq");
+        InputStream is = process.getInputStream();
+        InputStreamReader isr = new InputStreamReader(is);
+        BufferedReader br = new BufferedReader(isr);
+        File file = new File("/Users/yukun/genelab/output");
+//        file.createNewFile();
+//        FileWriter fw = new FileWriter(file.getAbsoluteFile());
+//        BufferedWriter bw = new BufferedWriter(fw);
+        String line;
+        if ((line = br.readLine()) != null) {
+            //Outputs your process execution
+            String temp = line + "\n";
+            byte[] bytes=temp.getBytes();
+            System.out.println(temp);
+            for(int n =0;n<bytes.length;n++){
+                System.out.print(bytes[n]+" ");
+
+            }
         }
-        conf.set("mapreduce.input.lineinputformat.linespermap", Conf.N_LINES_PER_CHUNKS + "");
-        Job job = new Job(conf, "test");
-        job.setJarByClass(test.class);
-        job.setMapperClass(MyMapper.class);
-        job.setReducerClass(MyReducer.class);
-        job.setInputFormatClass(FQInputFormat.class);
-//        job.setInputFormatClass(FQNLineInputFormat2.class);
-        job.setOutputKeyClass(LongWritable.class);
-        job.setOutputValueClass(FQSplitInfo.class);
-        FileInputFormat.addInputPath(job, new Path(otherArgs[0]));
-        FileOutputFormat.setOutputPath(job, new Path(otherArgs[1]));
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
+//        bw.close();
+        br.close();
+//        Configuration conf = new Configuration();
+//        String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
+//        if (otherArgs.length != 2) {
+//            System.err.println("Usage: test <in> <out>");
+//            System.exit(2);
+//        }
+//        conf.set("mapreduce.input.lineinputformat.linespermap", Conf.N_LINES_PER_CHUNKS + "");
+//        Job job = new Job(conf, "test");
+//        job.setJarByClass(test.class);
+//        job.setMapperClass(MyMapper.class);
+//        job.setReducerClass(MyReducer.class);
+//        job.setInputFormatClass(FQInputFormat.class);
+////        job.setInputFormatClass(FQNLineInputFormat2.class);
+//        job.setOutputKeyClass(LongWritable.class);
+//        job.setOutputValueClass(FQSplitInfo.class);
+//        FileInputFormat.addInputPath(job, new Path(otherArgs[0]));
+//        FileOutputFormat.setOutputPath(job, new Path(otherArgs[1]));
+//        System.exit(job.waitForCompletion(true) ? 0 : 1);
+    }
+    public static byte[] hexStringToByteArray(String s) {
+        int len = s.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                    + Character.digit(s.charAt(i+1), 16));
+        }
+        return data;
     }
 
     @SuppressWarnings("unchecked")

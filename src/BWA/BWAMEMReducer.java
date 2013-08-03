@@ -1,15 +1,16 @@
 package BWA;
 
 import genelab.Conf;
-import org.apache.hadoop.fs.*;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.FileOutputFormat;
 import org.apache.hadoop.mapreduce.Reducer;
-import org .apache.hadoop.conf.Configuration;
+import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
-import org.apache.hadoop.mapred.Reporter;
-import org.apache.hadoop.mapred.OutputCollector;
+import sandbox.FQSplitInfo;
 
 import java.io.*;
 import java.util.Arrays;
@@ -20,19 +21,21 @@ import java.util.Arrays;
  * Time: 14:02
  */
 
-public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
+public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, String> {
 
     MultipleOutputs mos = null;
 
     @Override
-    protected void setup(Context context){
-            mos = new MultipleOutputs(context);
+    protected void setup(Context context) {
+        mos = new MultipleOutputs(context);
     }
 
     @Override
-    public void reduce(LongWritable key, Iterable<Text> value, Context context) throws IOException, InterruptedException {
+    public void reduce(LongWritable key, Iterable<FQSplitInfo> value, Context context) throws IOException, InterruptedException {
 
         Configuration conf = new Configuration();
+        FileSystem fs = FileSystem.get(conf);
+
         //FileSystem hdfsFileSystem = FileSystem.get(conf);
         File workingDir = new File(Conf.PATH_MAIN + context.getJobID().toString() + "_" + key);
         System.out.println(workingDir.getAbsolutePath());
@@ -44,60 +47,64 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
         Assistant.copyReference(context.getConfiguration());
         Assistant.copyBWA(context.getConfiguration());
 
-        this.runCommand("rm -r job_*");
+//        this.runCommand("rm -r job_*");
 
 //        write down .fq files
-        String inputPath[] = new String[2];
-        for (Text v : value) {
-            String in = v.toString();
-            String name = in.split("\n")[0];
-            String inPath = workingDir.getAbsolutePath() + "/" + name + "_" + key + ".fq";
-
-            if (inputPath[0] == null) {
-                inputPath[0] = inPath;
+        String outputPath[] = new String[2];
+        for (FQSplitInfo info : value) {
+            Path inFile = new Path(info.getPath());
+            String outFile = workingDir.getAbsolutePath() + "/" + inFile.getName() + "_" + key + ".fq";
+            if (outputPath[0] == null) {
+                outputPath[0] = outFile;
             } else {
-                inputPath[1] = inPath;
-
+                outputPath[1] = outFile;
             }
-//            System.out.println("inPath: " + inPath);
-            File file = new File(inPath);
+            // Read from and write to new file
+            FSDataInputStream in = fs.open(inFile);
+            in.seek(info.getStart());
+            File file = new File(outFile);
             if (!file.exists()) {
                 file.createNewFile();
-                FileWriter fw = new FileWriter(file.getAbsoluteFile());
-                BufferedWriter bw = new BufferedWriter(fw);
-                bw.write(in, (name + "\n").length(), in.length() - (name + "\n").length());
-                bw.close();
+            } else {
+                file.delete();
             }
+            FileOutputStream outputStream = new FileOutputStream(file);
+            byte[] bytes = new byte[1048576];
+            for (int n = 0; n < info.getLength() / 1048576; n++) {
+                in.read(bytes);
+                outputStream.write(bytes, 0, 1048576);
+            }
+            if (in.read(bytes) != -1) {
+                outputStream.write(bytes, 0, (int) info.getLength() % 1048576);
+            }
+            in.close();
+            outputStream.close();
         }
 
         //start to run command
         String bwa = Conf.PATH_BWA + "bwa";
         String command;
-        if (inputPath[1] == null || inputPath.equals("")) {
+        if (outputPath[1] == null || outputPath.equals("")) {
             command = bwa + " mem " + Conf.PATH_REFERENCE + context.getConfiguration().get("reference") + "/reference.fa "
-                    + " " + inputPath[0];
+                    + " " + outputPath[0];
         } else {
-            Arrays.sort(inputPath);
+            Arrays.sort(outputPath);
             command = bwa + " mem -t 1 " + Conf.PATH_REFERENCE + context.getConfiguration().get("reference") + "/reference.fa "
-                    + " " + inputPath[0] + " " + inputPath[1];
+                    + " " + outputPath[0] + " " + outputPath[1];
         }
         System.out.println("command :" + command);
         Process p = Runtime.getRuntime().exec(command);
 
-        InputStream is = p.getInputStream();
-        InputStreamReader isr = new InputStreamReader(is);
-        BufferedReader br = new BufferedReader(isr);
-
-        InputStream er = p.getErrorStream();
-        InputStreamReader err = new InputStreamReader(er);
-        BufferedReader br_err = new BufferedReader(err);
+        BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        BufferedReader br_err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
         String line;
         String error;
-        String output = "";
-        while ((line = br.readLine()) != null) {
+        FSDataOutputStream out = fs.create(new Path(FileOutputFormat.getOutputPath(context) + "/temp/" + key));
+        while ((line =br.readLine()) != null) {
             //Outputs your process execution
             if (!(line.substring(0, 1)).equals("@") || key.toString().equals("1")) {
-                output = output + line + "\n";
+                String temp=""+line+"\n";
+                out.write(temp.getBytes());
             }
         }
 
@@ -106,33 +113,18 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
             System.out.println("Terminal: " + error);
         }
 
-        OutputStream outputStream = p.getOutputStream();
-        PrintStream printStream = new PrintStream(outputStream);
-        printStream.println();
-        printStream.flush();
-        er.close();
-        err.close();
+
         br.close();
         br_err.close();
-        outputStream.close();
-        printStream.close();
+        out.close();
 
         //clean working directory
 //        Runtime.getRuntime().exec("rm -r " + workingDir.getAbsolutePath() + " " + Conf.PATH_REFERENCE);
         Runtime.getRuntime().exec("rm -r " + workingDir.getAbsolutePath());
+
 //        runCommand("ls -lh " + Conf.PATH_MAIN);
 
-        if (output.length() - "\n".length() > 0) {
 
-              mos.write("genefiles",key.toString(),output.substring(0, output.length() - "\n".length()),"gene/gene-"+key.toString());
-
-            //context.write("", output.substring(0, output.length() - "\n".length()));
-        }
-    }
-
-    @Override
-    protected void cleanup(Context context) throws IOException, InterruptedException {
-        mos.close();
     }
 
     public void runCommand(String command) throws IOException {
@@ -166,9 +158,5 @@ public class BWAMEMReducer extends Reducer<LongWritable, Text, String, String> {
         er.close();
         err.close();
         br_err.close();
-    }
-
-    String generateFileName(LongWritable k) {
-        return k.toString();
     }
 }

@@ -7,7 +7,6 @@ package genelab;
 import BWA.BWAIndexMapper;
 import BWA.BWAMapper;
 import BWA.BWAReducer;
-import inputFormat.FQInputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;
@@ -63,7 +62,6 @@ public class GENE {
         Configuration alignConf = new Configuration();
         Job align = new Job(alignConf, "align");
 
-        align.setInputFormatClass(FQInputFormat.class);
 
         align.setJarByClass(GENE.class);
         align.setMapperClass(BWAMapper.class);
