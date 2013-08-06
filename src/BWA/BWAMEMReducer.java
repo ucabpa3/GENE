@@ -9,7 +9,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.mapreduce.lib.output.MultipleOutputs;
 import sandbox.FQSplitInfo;
 
 import java.io.*;
@@ -23,19 +22,16 @@ import java.util.Arrays;
 
 public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, String> {
 
-    MultipleOutputs mos = null;
-
-    @Override
-    protected void setup(Context context) {
-        mos = new MultipleOutputs(context);
-    }
 
     @Override
     public void reduce(LongWritable key, Iterable<FQSplitInfo> value, Context context) throws IOException, InterruptedException {
 
         Configuration conf = new Configuration();
         FileSystem fs = FileSystem.get(conf);
-
+        context.setStatus("kill me!!!!!!");
+        context.progress();
+        context.setStatus("99");
+        context.progress();
         //FileSystem hdfsFileSystem = FileSystem.get(conf);
         File workingDir = new File(Conf.PATH_MAIN + context.getJobID().toString() + "_" + key);
         System.out.println(workingDir.getAbsolutePath());
@@ -100,10 +96,10 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
         String line;
         String error;
         FSDataOutputStream out = fs.create(new Path(FileOutputFormat.getOutputPath(context) + "/temp/" + key));
-        while ((line =br.readLine()) != null) {
+        while ((line = br.readLine()) != null) {
             //Outputs your process execution
             if (!(line.substring(0, 1)).equals("@") || key.toString().equals("1")) {
-                String temp=""+line+"\n";
+                String temp = "" + line + "\n";
                 out.write(temp.getBytes());
             }
         }

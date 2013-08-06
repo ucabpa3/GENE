@@ -3,6 +3,7 @@ package genelab;
 import BWA.BWAMEMReducer;
 import BWA.BWAMapper;
 import BWA.BWAbtReducer;
+import BWA.Maintainer;
 import inputFormat.FQInputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
@@ -15,7 +16,7 @@ import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import outputForamt.NoKeyOutputFormat;
 import sandbox.FQSplitInfo;
 
-import java.io.*;
+import java.io.IOException;
 
 /**
  * User: yukun
@@ -23,14 +24,6 @@ import java.io.*;
  * Time: 13:24
  */
 public class Main {
-
-    Configuration conf;
-    Job job;
-
-    public Main() throws IOException {
-        conf = new Configuration();
-
-    }
 
     public static void usage() {
         System.err.println("Program: bwa (alignment via Burrows-Wheeler transformation) on Hadoop");
@@ -47,21 +40,32 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
-        new Main().mem(args);
         if (args.length < 1) {
             Main.usage();
-        }
-        if (args[0].equals("mem")) {
-            new Main().mem(args);
-        }
-        if (args[0].equals("backtrak")) {
-            new Main().backtrack(args);
+        } else if (args[0].equals("mem")) {
+            mem(args);
+        } else if (args[0].equals("backtrak")) {
+            backtrack(args);
+        } else if (args[0].equals("cleanAll")) {
+            Maintainer.cleanAll();
+        } else if (args[0].equals("cleanRef")) {
+            Maintainer.cleanRef();
+        } else if (args[0].equals("cleanBWA")) {
+            Maintainer.cleanBWA();
+        } else if (args[0].equals("cleanCache")) {
+            Maintainer.cleanCache();
+        }                           else {
+            Main.usage();
         }
 
 
     }
 
-    public void mem(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+    public static void mem(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+        Configuration conf;
+        Job job;
+        conf = new Configuration();
+
         if (args.length < 3) {
             System.err.println("Usage:  hadoop jar Gen.jar mem <reference name> <input folder>");
             System.exit(2);
@@ -71,9 +75,7 @@ public class Main {
         //conf.set("mapred.job.reduce.memory.physical.mb", "6000");
         //conf.set("mapred.job.map.memory.physical.mb", "200");
         String input = "/mapr/mapr-m3-student/myvolume/genelab/input/" + args[2];
-        String output = "/mapr/mapr-m3-student/myvolume/genelab/output/" +args[1]+"_"+args[2] ;
-//        String input = args[2];
-//        String output = args[3];
+        String output = "/mapr/mapr-m3-student/myvolume/genelab/output/" + args[1] + "_" + args[2];
         job = new Job(conf, "bwa " + Conf.N_LINES_PER_CHUNKS + "lines 12reducers 1processes " + args[1] + " " + args[2]);
         job.setJarByClass(Main.class);
         job.setMapperClass(BWAMapper.class);
@@ -81,7 +83,7 @@ public class Main {
         job.setInputFormatClass(FQInputFormat.class);
         job.setOutputKeyClass(LongWritable.class);
         job.setOutputValueClass(FQSplitInfo.class);
-        job.setNumReduceTasks(2);
+        job.setNumReduceTasks(12);
         job.setOutputFormatClass(NullOutputFormat.class);
         FileInputFormat.addInputPath(job, new Path(input));
         FileOutputFormat.setOutputPath(job, new Path(output));
@@ -93,7 +95,7 @@ public class Main {
         System.exit(exit ? 0 : 1);
     }
 
-    public void merge(String output) throws IOException {
+    public static void merge(String output) throws IOException {
 
         Configuration conf = new Configuration();
         FileSystem hdfsFileSystem = FileSystem.get(conf);
@@ -120,7 +122,10 @@ public class Main {
 
     }
 
-    public void backtrack(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+    public static void backtrack(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
+        Configuration conf;
+        Job job;
+        conf = new Configuration();
         if (args.length < 4) {
             System.err.println("Usage:  hadoop jar Gen.jar backtrack <reference name> <input folder> <output folder>");
             System.exit(2);
