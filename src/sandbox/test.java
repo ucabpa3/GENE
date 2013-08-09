@@ -1,5 +1,6 @@
 package sandbox;
 
+import BWA.Assistant;
 import genelab.Conf;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
@@ -10,7 +11,9 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 /**
  * User: yukun
@@ -20,27 +23,8 @@ import java.io.*;
 @SuppressWarnings("ALL")
 public class test {
     public static void main(String[] args) throws Exception {
-        Process process = Runtime.getRuntime().exec("/Users/yukun/genelab/bwa mem /Users/yukun/genelab/reference/smallRef/reference.fa /Users/yukun/genelab/1.fq /Users/yukun/genelab/2.fq");
-        InputStream is = process.getInputStream();
-        InputStreamReader isr = new InputStreamReader(is);
-        BufferedReader br = new BufferedReader(isr);
-        File file = new File("/Users/yukun/genelab/output");
-//        file.createNewFile();
-//        FileWriter fw = new FileWriter(file.getAbsoluteFile());
-//        BufferedWriter bw = new BufferedWriter(fw);
-        String line;
-        if ((line = br.readLine()) != null) {
-            //Outputs your process execution
-            String temp = line + "\n";
-            byte[] bytes=temp.getBytes();
-            System.out.println(temp);
-            for(int n =0;n<bytes.length;n++){
-                System.out.print(bytes[n]+" ");
-
-            }
-        }
-//        bw.close();
-        br.close();
+        File file = new File("/Users/yukun/genelab/Prototype1_Data");
+        Assistant.deleteDir(file);
 //        Configuration conf = new Configuration();
 //        String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 //        if (otherArgs.length != 2) {

@@ -22,29 +22,25 @@ import java.util.Arrays;
 
 public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, String> {
 
-
     @Override
     public void reduce(LongWritable key, Iterable<FQSplitInfo> value, Context context) throws IOException, InterruptedException {
 
         Configuration conf = new Configuration();
         FileSystem fs = FileSystem.get(conf);
-        context.setStatus("kill me!!!!!!");
-        context.progress();
-        context.setStatus("99");
-        context.progress();
-        //FileSystem hdfsFileSystem = FileSystem.get(conf);
-        File workingDir = new File(Conf.PATH_MAIN + context.getJobID().toString() + "_" + key);
+        File workingDir = new File(Conf.PATH_CACHE + context.getJobID().toString() + "_" + key);
         System.out.println(workingDir.getAbsolutePath());
-
         if (new File(workingDir.getAbsolutePath()).mkdirs()) {
             System.out.println("created the local working directory");
         }
-
-        Assistant.copyReference(context.getConfiguration());
+        context.setStatus("copying bwa");
+        context.progress();
         Assistant.copyBWA(context.getConfiguration());
+        context.setStatus("copying reference");
+        context.progress();
+        Assistant.copyReference(context.getConfiguration());
 
-//        this.runCommand("rm -r job_*");
-
+        context.setStatus("writing down input files");
+        context.progress();
 //        write down .fq files
         String outputPath[] = new String[2];
         for (FQSplitInfo info : value) {
@@ -78,14 +74,16 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
         }
 
         //start to run command
-        String bwa = Conf.PATH_BWA + "bwa";
+        context.setStatus("running bwa");
+        context.progress();
+        String bwa = Conf.PATH_BWA;
         String command;
         if (outputPath[1] == null || outputPath.equals("")) {
             command = bwa + " mem " + Conf.PATH_REFERENCE + context.getConfiguration().get("reference") + "/reference.fa "
                     + " " + outputPath[0];
         } else {
             Arrays.sort(outputPath);
-            command = bwa + " mem -t 1 " + Conf.PATH_REFERENCE + context.getConfiguration().get("reference") + "/reference.fa "
+            command = bwa + " mem " + Conf.PATH_REFERENCE + context.getConfiguration().get("reference") + "/reference.fa "
                     + " " + outputPath[0] + " " + outputPath[1];
         }
         System.out.println("command :" + command);
@@ -109,50 +107,13 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
             System.out.println("Terminal: " + error);
         }
 
-
         br.close();
         br_err.close();
         out.close();
 
         //clean working directory
-//        Runtime.getRuntime().exec("rm -r " + workingDir.getAbsolutePath() + " " + Conf.PATH_REFERENCE);
-        Runtime.getRuntime().exec("rm -r " + workingDir.getAbsolutePath());
-
-//        runCommand("ls -lh " + Conf.PATH_MAIN);
-
-
-    }
-
-    public void runCommand(String command) throws IOException {
-        System.out.println("");
-        System.out.println("command: " + command);
-
-        Process p = Runtime.getRuntime().exec(command);
-
-        InputStream is = p.getInputStream();
-        InputStreamReader isr = new InputStreamReader(is);
-        BufferedReader br = new BufferedReader(isr);
-
-        InputStream er = p.getErrorStream();
-        InputStreamReader err = new InputStreamReader(er);
-        BufferedReader br_err = new BufferedReader(err);
-        String line;
-        String error;
-        String output = "";
-        while ((line = br.readLine()) != null) {
-            //Outputs your process execution
-            System.out.println("output: " + line);
-        }
-
-        while ((error = br_err.readLine()) != null) {
-            //Outputs your process execution
-            System.out.println("Terminal: " + error);
-        }
-        is.close();
-        isr.close();
-        br.close();
-        er.close();
-        err.close();
-        br_err.close();
+        context.setStatus("cleaning");
+        context.progress();
+        Assistant.deleteDir(workingDir);
     }
 }

@@ -1,8 +1,6 @@
 package sandbox;
 
 import genelab.Conf;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.LongWritable;
@@ -27,7 +25,6 @@ import java.util.List;
  */
 public class FQNLineInputFormat extends NLineInputFormat {
     static final String NUM_INPUT_FILES = "mapreduce.input.num.files";
-    private static final Log LOG = LogFactory.getLog(NLineInputFormat.class);
     private static final double SPLIT_SLOP = 1.1;   // 10% slop
 
     @Override
@@ -79,7 +76,6 @@ public class FQNLineInputFormat extends NLineInputFormat {
         // Save the number of input files in the job-conf
         job.getConfiguration().setLong(NUM_INPUT_FILES, files.size());
 
-        LOG.debug("Total # of splits: " + splits.size());
         return splits;
     }
 
@@ -109,7 +105,6 @@ public class FQNLineInputFormat extends NLineInputFormat {
     }
 
     private static class FQLineRecordReader extends RecordReader<LongWritable, Text> {
-        private static final Log LOG = LogFactory.getLog(FQLineRecordReader.class);
         private CompressionCodecFactory compressionCodecs = null;
         private long start;
         private long pos;
@@ -170,10 +165,6 @@ public class FQNLineInputFormat extends NLineInputFormat {
                 if (newSize < maxLineLength) {
                     break;
                 }
-
-                // line too long. try again
-                LOG.info("Skipped line of size " + newSize + " at pos " +
-                        (pos - newSize));
             }
             if (newSize == 0) {
                 k = null;

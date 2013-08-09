@@ -1,19 +1,14 @@
 package genelab;
 
-import BWA.BWAMEMReducer;
-import BWA.BWAMapper;
-import BWA.BWAbtReducer;
-import BWA.Maintainer;
+import BWA.*;
 import inputFormat.FQInputFormat;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.*;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
-import outputForamt.NoKeyOutputFormat;
 import sandbox.FQSplitInfo;
 
 import java.io.IOException;
@@ -32,7 +27,8 @@ public class Main {
         System.err.println("Usage:   hadoop jar Gen.jar <command> [options]");
         System.err.println("Command: index         index sequences in the FASTA format");
         System.err.println("         mem           BWA-MEM algorithm");
-        System.err.println("         backtrack     BWA-backtrack algorithm");
+        System.err.println("         backtrack            BWA-backtrack algorithm");
+        System.err.println("         clean         clean the files on nodes");
         System.err.println("Note: To use BWA, you need to first index the genome with `bwa index'. There are" +
                 " three alignment algorithms in BWA: `mem', `bwasw' and `aln/samse/sampe'. If you are not sure" +
                 " which to use, try `bwa mem' first. Please `man ./bwa.1' for for the manual.");
@@ -44,17 +40,20 @@ public class Main {
             Main.usage();
         } else if (args[0].equals("mem")) {
             mem(args);
-        } else if (args[0].equals("backtrak")) {
+        } else if (args[0].equals("backtrack")) {
             backtrack(args);
-        } else if (args[0].equals("cleanAll")) {
-            Maintainer.cleanAll();
-        } else if (args[0].equals("cleanRef")) {
-            Maintainer.cleanRef();
-        } else if (args[0].equals("cleanBWA")) {
-            Maintainer.cleanBWA();
-        } else if (args[0].equals("cleanCache")) {
-            Maintainer.cleanCache();
-        }                           else {
+        } else if (args[0].equals("clean")) {
+            if (args[1].equals("all")) {
+                Maintainer.cleanAll();
+            } else if (args[1].equals("reference")) {
+                Maintainer.cleanRef();
+            } else if (args[1].equals("cache")) {
+                Maintainer.cleanCache();
+            } else {
+                System.err.println("clean [all | reference | cache]");
+                System.exit(2);
+            }
+        } else {
             Main.usage();
         }
 
@@ -62,88 +61,61 @@ public class Main {
     }
 
     public static void mem(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
-        Configuration conf;
-        Job job;
-        conf = new Configuration();
-
         if (args.length < 3) {
             System.err.println("Usage:  hadoop jar Gen.jar mem <reference name> <input folder>");
             System.exit(2);
-
         }
+        Configuration conf = new Configuration();
         conf.set("reference", args[1]);
-        //conf.set("mapred.job.reduce.memory.physical.mb", "6000");
-        //conf.set("mapred.job.map.memory.physical.mb", "200");
-        String input = "/mapr/mapr-m3-student/myvolume/genelab/input/" + args[2];
-        String output = "/mapr/mapr-m3-student/myvolume/genelab/output/" + args[1] + "_" + args[2];
-        job = new Job(conf, "bwa " + Conf.N_LINES_PER_CHUNKS + "lines 12reducers 1processes " + args[1] + " " + args[2]);
+        String output = Conf.HDFS_OUTPUT + "mem_" + args[1] + "_" + args[2];
+        Job job = new Job(conf, "bwa mem" + Conf.N_LINES_PER_CHUNKS + "lines " + Conf.NUMBER_OF_REDUCERS + "reducers " + args[1] + " " + args[2]);
         job.setJarByClass(Main.class);
         job.setMapperClass(BWAMapper.class);
         job.setReducerClass(BWAMEMReducer.class);
         job.setInputFormatClass(FQInputFormat.class);
         job.setOutputKeyClass(LongWritable.class);
         job.setOutputValueClass(FQSplitInfo.class);
-        job.setNumReduceTasks(12);
+        job.setNumReduceTasks(Conf.NUMBER_OF_REDUCERS);
         job.setOutputFormatClass(NullOutputFormat.class);
-        FileInputFormat.addInputPath(job, new Path(input));
+        FileInputFormat.addInputPath(job, new Path(Conf.HDFS_INPUT + args[2]));
         FileOutputFormat.setOutputPath(job, new Path(output));
         boolean exit = job.waitForCompletion(true);
         if (exit) {
-            merge(output);
+            Assistant.merge(output);
+            System.exit(0);
+        } else {
+            System.out.println("job unsuccessful");
+            System.exit(1);
         }
-
-        System.exit(exit ? 0 : 1);
-    }
-
-    public static void merge(String output) throws IOException {
-
-        Configuration conf = new Configuration();
-        FileSystem hdfsFileSystem = FileSystem.get(conf);
-
-        Path hdfs = new Path(output + "/temp/");
-        FileStatus[] status = hdfsFileSystem.listStatus(hdfs);
-        try {
-            Path outFile = new Path(output + "/output.bam");
-            FileSystem fs = FileSystem.get(new Configuration());
-            FSDataOutputStream out = fs.create(outFile);
-            for (int i = 1; i <= status.length; i++) {
-                FSDataInputStream in = fs.open(new Path(output + "/temp/" + i));
-                byte buffer[] = new byte[256];
-                int bytesRead = 0;
-                while ((bytesRead = in.read(buffer)) > 0) {
-                    out.write(buffer, 0, bytesRead);
-                }
-                in.close();
-            }
-            out.close();
-        } catch (Exception e) {
-            System.out.println("File not found");
-        }
-
     }
 
     public static void backtrack(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
-        Configuration conf;
-        Job job;
-        conf = new Configuration();
-        if (args.length < 4) {
-            System.err.println("Usage:  hadoop jar Gen.jar backtrack <reference name> <input folder> <output folder>");
+        if (args.length < 3) {
+            System.err.println("Usage:  hadoop jar Gen.jar backtrack <reference name> <input folder>");
             System.exit(2);
         }
+        Configuration conf = new Configuration();
         conf.set("reference", args[1]);
-        String input = args[2];
-        String output = args[3];
-        job = new Job(conf, "bwa on hadoop");
+        String output = Conf.HDFS_OUTPUT + "bt_" + args[1] + "_" + args[2];
+        Job job = new Job(conf, "bwa backtrack" + Conf.N_LINES_PER_CHUNKS + "lines " + Conf.NUMBER_OF_REDUCERS + "reducers " + args[1] + " " + args[2]);
         job.setJarByClass(Main.class);
         job.setMapperClass(BWAMapper.class);
         job.setReducerClass(BWAbtReducer.class);
         job.setInputFormatClass(FQInputFormat.class);
         job.setOutputKeyClass(LongWritable.class);
-        job.setOutputValueClass(Text.class);
-        job.setOutputFormatClass(NoKeyOutputFormat.class);
-        FileInputFormat.addInputPath(job, new Path(input));
+        job.setOutputValueClass(FQSplitInfo.class);
+        job.setNumReduceTasks(Conf.NUMBER_OF_REDUCERS);
+        job.setOutputFormatClass(NullOutputFormat.class);
+        FileInputFormat.addInputPath(job, new Path(Conf.HDFS_INPUT + args[2]));
         FileOutputFormat.setOutputPath(job, new Path(output));
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
+        boolean exit = job.waitForCompletion(true);
+        if (exit) {
+            Assistant.merge(output);
+            System.exit(0);
+        } else {
+            System.out.println("job unsuccessful");
+            System.exit(1);
+        }
     }
 
 }

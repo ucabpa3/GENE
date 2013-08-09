@@ -6,8 +6,6 @@ package sandbox;
  * Time: 02:46
  */
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
@@ -15,7 +13,6 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.io.compress.CompressionCodec;
 import org.apache.hadoop.io.compress.CompressionCodecFactory;
@@ -145,7 +142,6 @@ public class FQNLineInputFormat2 extends FileInputFormat<Text, Text> {
     }
 
     private static class FQLineRecordReader extends RecordReader<Text, Text> {
-        private static final Log LOG = LogFactory.getLog(FQLineRecordReader.class);
         private CompressionCodecFactory compressionCodecs = null;
         private long start;
         private long pos;
@@ -208,9 +204,6 @@ public class FQNLineInputFormat2 extends FileInputFormat<Text, Text> {
                     break;
                 }
 
-                // line too long. try again
-                LOG.info("Skipped line of size " + newSize + " at pos " +
-                        (pos - newSize));
             }
             if (newSize == 0) {
                 return false;
