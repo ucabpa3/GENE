@@ -2,14 +2,11 @@ package BWA;
 
 import genelab.Conf;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.*;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Reducer;
+import inputFormat.FQSplitInfo;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import sandbox.FQSplitInfo;
 
 import java.io.*;
 import java.util.Arrays;
@@ -24,7 +21,6 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
 
     @Override
     public void reduce(LongWritable key, Iterable<FQSplitInfo> value, Context context) throws IOException, InterruptedException {
-
         Configuration conf = new Configuration();
         FileSystem fs = FileSystem.get(conf);
         File workingDir = new File(Conf.PATH_CACHE + context.getJobID().toString() + "_" + key);
@@ -115,5 +111,7 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
         context.setStatus("cleaning");
         context.progress();
         Assistant.deleteDir(workingDir);
+        context.setStatus("finish");
+        context.progress();
     }
 }

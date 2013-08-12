@@ -16,14 +16,13 @@ public class Assistant {
 
     public static void copyReference(Configuration conf) throws IOException {
         String refName = conf.get("reference");
-        File refFile = new File(Conf.PATH_REFERENCE + refName);
-        if (!refFile.exists()) {
-            refFile.mkdir();
-            FileSystem hdfsFileSystem = FileSystem.get(conf);
-            Path hdfs = new Path(Conf.HDFS_REFERENCE + refName);
-            FileStatus[] status = hdfsFileSystem.listStatus(hdfs);
-            for (int i = 0; i < status.length; i++) {
-                hdfsFileSystem.copyToLocalFile(false, status[i].getPath(), new Path(refFile.getAbsolutePath() + "/" + status[i].getPath().getName()));
+        FileSystem hdfsFileSystem = FileSystem.get(conf);
+        Path hdfs = new Path(Conf.HDFS_REFERENCE + refName);
+        FileStatus[] status = hdfsFileSystem.listStatus(hdfs);
+        for (int i = 0; i < status.length; i++) {
+            File temp = new File(Conf.PATH_REFERENCE+refName+"/"+status[i].getPath().getName());
+            if(!temp.exists()){
+                hdfsFileSystem.copyToLocalFile(false, status[i].getPath(),new Path(temp.getAbsolutePath()));
             }
         }
     }

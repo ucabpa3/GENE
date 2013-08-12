@@ -1,4 +1,4 @@
-package sandbox;
+package inputFormat;
 
 import org.apache.hadoop.io.Writable;
 

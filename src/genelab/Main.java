@@ -9,7 +9,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
-import sandbox.FQSplitInfo;
+import inputFormat.FQSplitInfo;
 
 import java.io.IOException;
 
@@ -68,7 +68,7 @@ public class Main {
         Configuration conf = new Configuration();
         conf.set("reference", args[1]);
         String output = Conf.HDFS_OUTPUT + "mem_" + args[1] + "_" + args[2];
-        Job job = new Job(conf, "bwa mem" + Conf.N_LINES_PER_CHUNKS + "lines " + Conf.NUMBER_OF_REDUCERS + "reducers " + args[1] + " " + args[2]);
+        Job job = new Job(conf, "bwa mem " + Conf.N_LINES_PER_CHUNKS + "lines " + Conf.NUMBER_OF_REDUCERS + "reducers " + args[1] + " " + args[2]);
         job.setJarByClass(Main.class);
         job.setMapperClass(BWAMapper.class);
         job.setReducerClass(BWAMEMReducer.class);
@@ -97,7 +97,7 @@ public class Main {
         Configuration conf = new Configuration();
         conf.set("reference", args[1]);
         String output = Conf.HDFS_OUTPUT + "bt_" + args[1] + "_" + args[2];
-        Job job = new Job(conf, "bwa backtrack" + Conf.N_LINES_PER_CHUNKS + "lines " + Conf.NUMBER_OF_REDUCERS + "reducers " + args[1] + " " + args[2]);
+        Job job = new Job(conf, "bwa backtrack " + Conf.N_LINES_PER_CHUNKS + "lines " + Conf.NUMBER_OF_REDUCERS + "reducers " + args[1] + " " + args[2]);
         job.setJarByClass(Main.class);
         job.setMapperClass(BWAMapper.class);
         job.setReducerClass(BWAbtReducer.class);

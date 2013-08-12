@@ -2,6 +2,7 @@ package sandbox;
 
 import BWA.Assistant;
 import genelab.Conf;
+import inputFormat.FQSplitInfo;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileSystem;

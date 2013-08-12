@@ -9,7 +9,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import sandbox.FQSplitInfo;
+import inputFormat.FQSplitInfo;
 
 import java.io.*;
 import java.util.Arrays;
@@ -21,9 +21,9 @@ import java.util.Arrays;
  */
 public class BWAbtReducer extends Reducer<LongWritable, FQSplitInfo, String, String> {
 
-    public static void aln(String input) throws IOException, InterruptedException {
+    public static void aln(String input,String refFolder) throws IOException, InterruptedException {
         String bwa = Conf.PATH_BWA;
-        String command = bwa + " " + "aln" + " -f" + input + ".sai " + Conf.PATH_REFERENCE + "reference.fa "
+        String command = bwa + " " + "aln" + " -f " + input + ".sai " + Conf.PATH_REFERENCE+ refFolder + "/reference.fa "
                 + " " + input;
         System.out.println("command :" + command);
         Process p = Runtime.getRuntime().exec(command);
@@ -97,11 +97,11 @@ public class BWAbtReducer extends Reducer<LongWritable, FQSplitInfo, String, Str
         context.setStatus("bwa aln");
         context.progress();
         if (outputPath[1] == null || outputPath.equals("")) {
-            aln(outputPath[0]);
+            aln(outputPath[0],context.getConfiguration().get("reference"));
         } else {
             Arrays.sort(outputPath);
-            aln(outputPath[0]);
-            aln(outputPath[1]);
+            aln(outputPath[0],context.getConfiguration().get("reference"));
+            aln(outputPath[1],context.getConfiguration().get("reference"));
         }
 
         context.setStatus("bwa samse|sampe");
@@ -144,6 +144,9 @@ public class BWAbtReducer extends Reducer<LongWritable, FQSplitInfo, String, Str
         context.setStatus("cleaning");
         context.progress();
         Assistant.deleteDir(workingDir);
+
+        context.setStatus("finish");
+        context.progress();
 
     }
 }

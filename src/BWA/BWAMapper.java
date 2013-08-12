@@ -2,7 +2,7 @@ package BWA;
 
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Mapper;
-import sandbox.FQSplitInfo;
+import inputFormat.FQSplitInfo;
 
 import java.io.IOException;
 
@@ -14,6 +14,7 @@ import java.io.IOException;
 public class BWAMapper extends Mapper<LongWritable, FQSplitInfo, LongWritable, FQSplitInfo> {
 
     public void map(LongWritable key, FQSplitInfo value, Context context) throws IOException, InterruptedException {
+        System.out.println(value);
         context.write(key, value);
     }
 
