@@ -20,9 +20,9 @@ public class Assistant {
         Path hdfs = new Path(Conf.HDFS_REFERENCE + refName);
         FileStatus[] status = hdfsFileSystem.listStatus(hdfs);
         for (int i = 0; i < status.length; i++) {
-            File temp = new File(Conf.PATH_REFERENCE+refName+"/"+status[i].getPath().getName());
-            if(!temp.exists()){
-                hdfsFileSystem.copyToLocalFile(false, status[i].getPath(),new Path(temp.getAbsolutePath()));
+            File temp = new File(Conf.PATH_REFERENCE + refName + "/" + status[i].getPath().getName());
+            if (!temp.exists()) {
+                hdfsFileSystem.copyToLocalFile(false, status[i].getPath(), new Path(temp.getAbsolutePath()));
             }
         }
     }
@@ -48,6 +48,11 @@ public class Assistant {
             FSDataOutputStream out = fs.create(outFile);
             System.out.println("merging " + status.length + " files");
             for (int i = 1; i <= status.length; i++) {
+                System.out.println(i/status.length+"% has been processed");
+                FileStatus fileStatus = fs.getFileStatus(new Path(output + "/temp/" + i));
+                if (fileStatus.getLen() < 10) {
+                    System.out.println("file " + fileStatus.getPath() + "seems wrong, only " + fileStatus.getLen() + " bytes big.");
+                }
                 FSDataInputStream in = fs.open(new Path(output + "/temp/" + i));
                 byte buffer[] = new byte[256];
                 int bytesRead = 0;
@@ -60,6 +65,7 @@ public class Assistant {
             hdfsFileSystem.delete(cache, true);
             System.out.println("job successful");
         } catch (Exception e) {
+            e.printStackTrace();
             System.out.println("File not found");
         }
 

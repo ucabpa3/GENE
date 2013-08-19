@@ -11,8 +11,8 @@ package genelab;
 public class Conf {
 
     public static String PACKAGE_VERSION = "0.2";
-//    public static int N_LINES_PER_CHUNKS = 1400000;
-        public static int N_LINES_PER_CHUNKS = 46000;
+    public static int N_LINES_PER_CHUNKS = 1400000;
+//        public static int N_LINES_PER_CHUNKS = 46000;
     public static int MAX_LINE_LENGTH = Integer.MAX_VALUE;
     public static int NUMBER_OF_REDUCERS=12;
 

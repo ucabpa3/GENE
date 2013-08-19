@@ -30,7 +30,7 @@ public class FQSplitInfo implements Writable {
 
     @Override
     public String toString(){
-        return path+" "+start+" "+length;
+        return path+" start: "+start+" length: "+length+" end: "+(start+length);
     }
 
     public String getPath() {

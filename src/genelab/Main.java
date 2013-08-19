@@ -67,6 +67,7 @@ public class Main {
         }
         Configuration conf = new Configuration();
         conf.set("reference", args[1]);
+        conf.set("mapreduce.tasktracker.reserved.physicalmemory.mb", "6000");
         String output = Conf.HDFS_OUTPUT + "mem_" + args[1] + "_" + args[2];
         Job job = new Job(conf, "bwa mem " + Conf.N_LINES_PER_CHUNKS + "lines " + Conf.NUMBER_OF_REDUCERS + "reducers " + args[1] + " " + args[2]);
         job.setJarByClass(Main.class);

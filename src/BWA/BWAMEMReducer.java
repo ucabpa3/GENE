@@ -20,7 +20,7 @@ import java.util.Arrays;
 public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, String> {
 
     @Override
-    public void reduce(LongWritable key, Iterable<FQSplitInfo> value, Context context) throws IOException, InterruptedException {
+    public void reduce(LongWritable key, Iterable<FQSplitInfo> value, Context context) throws IOException {
         Configuration conf = new Configuration();
         FileSystem fs = FileSystem.get(conf);
         File workingDir = new File(Conf.PATH_CACHE + context.getJobID().toString() + "_" + key);
@@ -63,7 +63,7 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
                 outputStream.write(bytes, 0, 1048576);
             }
             if (in.read(bytes) != -1) {
-                outputStream.write(bytes, 0, (int) info.getLength() % 1048576);
+                outputStream.write(bytes, 0, (int) (info.getLength() % 1048576)-2);
             }
             in.close();
             outputStream.close();
@@ -89,12 +89,21 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
         BufferedReader br_err = new BufferedReader(new InputStreamReader(p.getErrorStream()));
         String line;
         String error;
-        FSDataOutputStream out = fs.create(new Path(FileOutputFormat.getOutputPath(context) + "/temp/" + key));
+        FSDataOutputStream out = null;
+        try {
+            out = fs.create(new Path(FileOutputFormat.getOutputPath(context) + "/temp/" + key));
+        } catch (IOException e) {
+            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+        }
         while ((line = br.readLine()) != null) {
             //Outputs your process execution
             if (!(line.substring(0, 1)).equals("@") || key.toString().equals("1")) {
                 String temp = "" + line + "\n";
-                out.write(temp.getBytes());
+                try {
+                    out.write(temp.getBytes());
+                } catch (IOException e) {
+                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                }
             }
         }
 
