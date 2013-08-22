@@ -39,22 +39,27 @@ public class Assistant {
         }
     }
 
-    public static void appendResult(Path path) {
+    public static void appendResult(Configuration conf) {
         try {
-            FileSystem fs = FileSystem.get(new Configuration());
-            Path pathResult = fs.listStatus(new Path(path.toString() + "/result/"))[0].getPath();
-            Path pathLocked = new Path(path.toString() + "/result/locked");
+            FileSystem fs = FileSystem.get(conf);
+            String outputPath = conf.get("outputPath");
+            Path pathResult = fs.listStatus(new Path(outputPath + "/result"))[0].getPath();
+            Path pathLocked = new Path(outputPath + "/result/locked");
             if (!pathResult.getName().equals("locked")) {
                 int currentNum = Integer.valueOf(pathResult.getName());
                 fs.rename(pathResult, pathLocked);
-                FileStatus[] tempFiles = fs.listStatus(new Path(path.toString() + "temp/"));
-                for (int n = 0; n < tempFiles.length; n++) {
+                FileStatus[] tempFiles = fs.listStatus(new Path(outputPath + "/temp"));
+                int length = tempFiles.length;
+                for (int n = 0; n < length; n++) {
                     try {
                         int temN = Integer.valueOf(tempFiles[n].getPath().getName());
                         if (temN == currentNum + 1) {
                             System.out.println("merging " + temN);
                             FSDataInputStream in = fs.open(tempFiles[n].getPath());
                             FSDataOutputStream out = fs.append(pathLocked, 1048576);
+                            if (tempFiles[n].getLen() < 10) {
+                                log("file " + tempFiles[n].getPath().getName() + " seems wrong, only " + tempFiles[n].getLen() + " bytes big.", conf);
+                            }
                             byte buffer[] = new byte[1048576];
                             int bytesRead = 0;
                             while ((bytesRead = in.read(buffer)) > 0) {
@@ -62,16 +67,55 @@ public class Assistant {
                             }
                             in.close();
                             out.close();
+                            fs.delete(tempFiles[n].getPath(), true);
+                            length -= 1;
                             currentNum += 1;
                         }
                     } catch (Exception e) {
                     }
                 }
-                fs.rename(pathLocked, new Path(path.toString() + "/result/" + currentNum));
+                fs.rename(pathLocked, new Path(outputPath.toString() + "/result/" + currentNum));
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void appendRest(Configuration conf) throws IOException {
+        System.out.println("appendRest");
+        FileSystem fs = FileSystem.get(conf);
+        String outputPath = conf.get("outputPath");
+        Path pathResult = fs.listStatus(new Path(outputPath + "/result"))[0].getPath();
+        while (pathResult.getName().equals("locked")) {
+
+        }
+        int currentNum = Integer.valueOf(pathResult.getName());
+        while (fs.listStatus(new Path(outputPath + "/temp")).length > 0) {
+            FileStatus[] tempFiles = fs.listStatus(new Path(outputPath + "/temp"));
+            int length = tempFiles.length;
+            for (int n = 0; n < length; n++) {
+                    int temN = Integer.valueOf(tempFiles[n].getPath().getName());
+                    if (temN == currentNum + 1) {
+                        System.out.println("merging " + temN);
+                        FSDataInputStream in = fs.open(tempFiles[n].getPath());
+                        FSDataOutputStream out = fs.append(pathResult, 1048576);
+                        if (tempFiles[n].getLen() < 10) {
+                            log("file " + tempFiles[n].getPath().getName() + " seems wrong, only " + tempFiles[n].getLen() + " bytes big.", conf);
+                        }
+                        byte buffer[] = new byte[1048576];
+                        int bytesRead = 0;
+                        while ((bytesRead = in.read(buffer)) > 0) {
+                            out.write(buffer, 0, bytesRead);
+                        }
+                        in.close();
+                        out.close();
+                        fs.delete(tempFiles[n].getPath(), true);
+                        length -= 1;
+                        currentNum += 1;
+                    }
+            }
+        }
+        fs.rename(pathResult, new Path(outputPath + "/result/" + currentNum));
     }
 
     public static void merge(Configuration conf) throws IOException {
@@ -101,7 +145,6 @@ public class Assistant {
             }
             out.close();
             fs.delete(cache, true);
-
             System.out.println("job successful\n");
         } catch (Exception e) {
             e.printStackTrace();

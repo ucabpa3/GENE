@@ -15,6 +15,8 @@ import java.io.*;
 import java.util.Arrays;
 import java.util.Date;
 
+import static BWA.Assistant.appendResult;
+
 /**
  * User: yukun
  * Date: 12/07/2013
@@ -25,7 +27,7 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
 
     @Override
     public void reduce(LongWritable key, Iterable<FQSplitInfo> value, Context context) throws IOException {
-        Configuration conf = new Configuration();
+        Configuration conf = context.getConfiguration();
         FileSystem fs = FileSystem.get(conf);
         File workingDir = new File(Conf.PATH_CACHE + context.getJobID().toString() + "_" + key);
         System.out.println(workingDir.getAbsolutePath());
@@ -75,7 +77,7 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
         }
         Date end = new Date();
         long time = (end.getTime() - start.getTime());
-        Assistant.log("write down to local took: " + time+"ms", context);
+//        Assistant.log("writing down to local took: " + time + "ms", context);
         //start to run command
         context.setStatus("running bwa");
         context.progress();
@@ -97,11 +99,11 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
         String line;
         String error;
         FSDataOutputStream out = null;
-        try {
-            out = fs.create(new Path(FileOutputFormat.getOutputPath(context) + "/temp/" + key));
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
+        String outputfile = FileOutputFormat.getOutputPath(context) + "/temp/" + key;
+        fs.createNewFile(new Path(outputfile+"t"));
+        out = fs.append(new Path(outputfile + "t"));
+
         while ((line = br.readLine()) != null) {
             //Outputs your process execution
             if (!(line.substring(0, 1)).equals("@") || key.toString().equals("1")) {
@@ -122,13 +124,15 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
         br.close();
         br_err.close();
         out.close();
+        fs.rename(new Path(outputfile + "t"), new Path(outputfile));
         //clean working directory
         context.setStatus("cleaning");
         context.progress();
-//        context.setStatus("appending");
-//        context.progress();
-//        appendResult(FileOutputFormat.getOutputPath(context));
         Assistant.deleteDir(workingDir);
+
+        context.setStatus("appending");
+        context.progress();
+        appendResult(conf);
         context.setStatus("finish");
         context.progress();
     }

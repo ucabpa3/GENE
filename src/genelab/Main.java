@@ -85,11 +85,11 @@ public class Main {
         job.setOutputFormatClass(NullOutputFormat.class);
         FileInputFormat.addInputPath(job, new Path(Conf.HDFS_INPUT + args[2]));
         FileOutputFormat.setOutputPath(job, new Path(output));
-//        FileSystem.get(conf).create(new Path(output+"/result/0"));
         FileSystem fs = FileSystem.get(conf);
         fs.delete(new Path(output), true);
+        fs.createNewFile(new Path(output+"/result/0"));
         Date start = new Date();
-        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        DateFormat dateFormat = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
         Assistant.log("job start at: " + dateFormat.format(start), conf);
         Assistant.log("-----------------------------------------------", conf);
         boolean exit = job.waitForCompletion(true);
@@ -99,7 +99,8 @@ public class Main {
         Assistant.log("-----------------------------------------------", conf);
         Assistant.log("job took: " + pass / 3600000 + "hours " + pass / 60000 % 60 + "mins " + pass / 1000 % 60 + "s", conf);
         if (exit) {
-            Assistant.merge(conf);
+            Assistant.appendRest(conf);
+//            Assistant.merge(conf);
             Date mergeEnd = new Date();
             pass = mergeEnd.getTime() - end.getTime();
             Assistant.log("merge end at: " + dateFormat.format(mergeEnd), conf);
