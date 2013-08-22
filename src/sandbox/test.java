@@ -1,6 +1,5 @@
 package sandbox;
 
-import BWA.Assistant;
 import genelab.Conf;
 import inputFormat.FQSplitInfo;
 import org.apache.hadoop.conf.Configuration;
@@ -15,6 +14,9 @@ import org.apache.hadoop.mapreduce.Reducer;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /**
  * User: yukun
@@ -24,8 +26,11 @@ import java.io.IOException;
 @SuppressWarnings("ALL")
 public class test {
     public static void main(String[] args) throws Exception {
-        File file = new File("/Users/yukun/genelab/Prototype1_Data");
-        Assistant.deleteDir(file);
+        Date start = new Date();
+        DateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
+        System.out.println("job start at: "+dateFormat.format(start)+"\n");
+        Date end = new Date();
+        System.out.println(end.getTime()-start.getTime());
 //        Configuration conf = new Configuration();
 //        String[] otherArgs = new GenericOptionsParser(conf, args).getRemainingArgs();
 //        if (otherArgs.length != 2) {

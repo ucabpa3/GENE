@@ -4,6 +4,8 @@ import genelab.Conf;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.mapreduce.Mapper;
+import org.apache.hadoop.mapreduce.Reducer;
 
 import java.io.*;
 
@@ -16,13 +18,13 @@ public class Assistant {
 
     public static void copyReference(Configuration conf) throws IOException {
         String refName = conf.get("reference");
-        FileSystem hdfsFileSystem = FileSystem.get(conf);
+        FileSystem fs = FileSystem.get(conf);
         Path hdfs = new Path(Conf.HDFS_REFERENCE + refName);
-        FileStatus[] status = hdfsFileSystem.listStatus(hdfs);
+        FileStatus[] status = fs.listStatus(hdfs);
         for (int i = 0; i < status.length; i++) {
             File temp = new File(Conf.PATH_REFERENCE + refName + "/" + status[i].getPath().getName());
             if (!temp.exists()) {
-                hdfsFileSystem.copyToLocalFile(false, status[i].getPath(), new Path(temp.getAbsolutePath()));
+                fs.copyToLocalFile(false, status[i].getPath(), new Path(temp.getAbsolutePath()));
             }
         }
     }
@@ -30,31 +32,67 @@ public class Assistant {
     public static void copyBWA(Configuration conf) throws IOException {
         File bwaFile = new File(Conf.PATH_BWA);
         if (!bwaFile.exists()) {
-            FileSystem hdfsFileSystem = FileSystem.get(conf);
+            FileSystem fs = FileSystem.get(conf);
             Path hdfs = new Path(Conf.HDFS_BWA);
-            FileStatus[] status = hdfsFileSystem.listStatus(hdfs);
-            hdfsFileSystem.copyToLocalFile(false, hdfs, new Path(bwaFile.getAbsolutePath()));
+            FileStatus[] status = fs.listStatus(hdfs);
+            fs.copyToLocalFile(false, hdfs, new Path(bwaFile.getAbsolutePath()));
         }
     }
 
-    public static void merge(String output) throws IOException {
-        Configuration conf = new Configuration();
-        FileSystem hdfsFileSystem = FileSystem.get(conf);
-        Path cache = new Path(output + "/temp/");
-        FileStatus[] status = hdfsFileSystem.listStatus(cache);
+    public static void appendResult(Path path) {
         try {
-            Path outFile = new Path(output + "/result.bam");
             FileSystem fs = FileSystem.get(new Configuration());
-            FSDataOutputStream out = fs.create(outFile);
-            System.out.println("merging " + status.length + " files");
-            for (int i = 1; i <= status.length; i++) {
-                System.out.println(i/status.length+"% has been processed");
-                FileStatus fileStatus = fs.getFileStatus(new Path(output + "/temp/" + i));
-                if (fileStatus.getLen() < 10) {
-                    System.out.println("file " + fileStatus.getPath() + "seems wrong, only " + fileStatus.getLen() + " bytes big.");
+            Path pathResult = fs.listStatus(new Path(path.toString() + "/result/"))[0].getPath();
+            Path pathLocked = new Path(path.toString() + "/result/locked");
+            if (!pathResult.getName().equals("locked")) {
+                int currentNum = Integer.valueOf(pathResult.getName());
+                fs.rename(pathResult, pathLocked);
+                FileStatus[] tempFiles = fs.listStatus(new Path(path.toString() + "temp/"));
+                for (int n = 0; n < tempFiles.length; n++) {
+                    try {
+                        int temN = Integer.valueOf(tempFiles[n].getPath().getName());
+                        if (temN == currentNum + 1) {
+                            System.out.println("merging " + temN);
+                            FSDataInputStream in = fs.open(tempFiles[n].getPath());
+                            FSDataOutputStream out = fs.append(pathLocked, 1048576);
+                            byte buffer[] = new byte[1048576];
+                            int bytesRead = 0;
+                            while ((bytesRead = in.read(buffer)) > 0) {
+                                out.write(buffer, 0, bytesRead);
+                            }
+                            in.close();
+                            out.close();
+                            currentNum += 1;
+                        }
+                    } catch (Exception e) {
+                    }
                 }
-                FSDataInputStream in = fs.open(new Path(output + "/temp/" + i));
-                byte buffer[] = new byte[256];
+                fs.rename(pathLocked, new Path(path.toString() + "/result/" + currentNum));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void merge(Configuration conf) throws IOException {
+        FileSystem fs = FileSystem.get(conf);
+        Path cache = new Path(conf.get("outputPath") + "/temp");
+        FileStatus[] status = fs.listStatus(cache);
+        try {
+            Path outFile = new Path(conf.get("outputPath") + "/result.bam");
+            if (fs.exists(outFile)) {
+                fs.delete(outFile, true);
+            }
+            FSDataOutputStream out = fs.create(outFile);
+            log("trying to merge " + status.length + " files", conf);
+            for (int i = 1; i <= status.length; i++) {
+                System.out.println(100 * i / status.length + "% has been processed");
+                FileStatus fileStatus = fs.getFileStatus(new Path(cache.toString() + "/" + i));
+                if (fileStatus.getLen() < 10) {
+                    log("file " + fileStatus.getPath().getName() + " seems wrong, only " + fileStatus.getLen() + " bytes big.", conf);
+                }
+                FSDataInputStream in = fs.open(new Path(cache.toString() + "/" + i));
+                byte buffer[] = new byte[1048576];
                 int bytesRead = 0;
                 while ((bytesRead = in.read(buffer)) > 0) {
                     out.write(buffer, 0, bytesRead);
@@ -62,11 +100,12 @@ public class Assistant {
                 in.close();
             }
             out.close();
-            hdfsFileSystem.delete(cache, true);
-            System.out.println("job successful");
+            fs.delete(cache, true);
+
+            System.out.println("job successful\n");
         } catch (Exception e) {
             e.printStackTrace();
-            System.out.println("File not found");
+            log(e.getMessage() + "\n", conf);
         }
 
     }
@@ -82,6 +121,26 @@ public class Assistant {
             }
         }
         return dir.delete();
+    }
+
+    public static void log(String info, Configuration conf) throws IOException {
+        System.out.println("log: " + info);
+        Path output = new Path(conf.get("outputPath") + "/info.txt");
+        FileSystem fs = FileSystem.get(conf);
+        if (!fs.exists(output)) {
+            fs.createNewFile(output);
+        }
+        FSDataOutputStream out = fs.append(output);
+        out.writeChars(info + "\n");
+        out.close();
+    }
+
+    public static void log(String info, Mapper.Context context) throws IOException {
+        log(context.getTaskAttemptID() + ":\n" + info + "\n", context.getConfiguration());
+    }
+
+    public static void log(String info, Reducer.Context context) throws IOException {
+        log(context.getTaskAttemptID() + ":\n" + info + "\n", context.getConfiguration());
     }
 
     public static void runCommand(String command) throws IOException {

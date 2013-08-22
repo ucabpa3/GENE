@@ -1,15 +1,19 @@
 package BWA;
 
 import genelab.Conf;
+import inputFormat.FQSplitInfo;
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.*;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Reducer;
-import inputFormat.FQSplitInfo;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import java.io.*;
 import java.util.Arrays;
+import java.util.Date;
 
 /**
  * User: yukun
@@ -38,6 +42,7 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
         context.setStatus("writing down input files");
         context.progress();
 //        write down .fq files
+        Date start = new Date();
         String outputPath[] = new String[2];
         for (FQSplitInfo info : value) {
             Path inFile = new Path(info.getPath());
@@ -63,12 +68,14 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
                 outputStream.write(bytes, 0, 1048576);
             }
             if (in.read(bytes) != -1) {
-                outputStream.write(bytes, 0, (int) (info.getLength() % 1048576)-2);
+                outputStream.write(bytes, 0, (int) (info.getLength() % 1048576) - 2);
             }
             in.close();
             outputStream.close();
         }
-
+        Date end = new Date();
+        long time = (end.getTime() - start.getTime());
+        Assistant.log("write down to local took: " + time+"ms", context);
         //start to run command
         context.setStatus("running bwa");
         context.progress();
@@ -93,7 +100,7 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
         try {
             out = fs.create(new Path(FileOutputFormat.getOutputPath(context) + "/temp/" + key));
         } catch (IOException e) {
-            e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            e.printStackTrace();
         }
         while ((line = br.readLine()) != null) {
             //Outputs your process execution
@@ -102,7 +109,7 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
                 try {
                     out.write(temp.getBytes());
                 } catch (IOException e) {
-                    e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                    e.printStackTrace();
                 }
             }
         }
@@ -115,10 +122,12 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
         br.close();
         br_err.close();
         out.close();
-
         //clean working directory
         context.setStatus("cleaning");
         context.progress();
+//        context.setStatus("appending");
+//        context.progress();
+//        appendResult(FileOutputFormat.getOutputPath(context));
         Assistant.deleteDir(workingDir);
         context.setStatus("finish");
         context.progress();
