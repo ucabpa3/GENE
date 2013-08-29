@@ -46,6 +46,8 @@ public class Main {
             mem(args);
         } else if (args[0].equals("backtrack")) {
             backtrack(args);
+        } else if (args[0].equals("pre")) {
+            BWAPrepossess.run(args);
         } else if (args[0].equals("clean")) {
             if (args[1].equals("all")) {
                 Maintainer.cleanAll();
@@ -53,16 +55,17 @@ public class Main {
                 Maintainer.cleanRef();
             } else if (args[1].equals("cache")) {
                 Maintainer.cleanCache();
+            } else if (args[1].equals("bwa")) {
+                Maintainer.cleanBWA();
             } else {
-                System.err.println("clean [all | reference | cache]");
+                System.err.println("clean [all | baw ｜ reference | cache]");
                 System.exit(2);
             }
         } else {
             Main.usage();
         }
-
-
     }
+
 
     public static void mem(String[] args) throws IOException, ClassNotFoundException, InterruptedException {
         if (args.length < 3) {
@@ -73,7 +76,8 @@ public class Main {
         Configuration conf = new Configuration();
         conf.set("reference", args[1]);
         conf.set("outputPath", output);
-        conf.set("mapreduce.tasktracker.reserved.physicalmemory.mb", "6000");
+        conf.set("mapreduce.tasktracker.reserved.physicalmemory.mb", Conf.RESERVED_MEMORY);
+        conf.set("mapred.tasktracker.reduce.tasks.maximum", "1");
         Job job = new Job(conf, "bwa mem " + Conf.N_LINES_PER_CHUNKS + "lines " + Conf.NUMBER_OF_REDUCERS + "reducers " + args[1] + " " + args[2]);
         job.setJarByClass(Main.class);
         job.setMapperClass(BWAMapper.class);
@@ -87,11 +91,12 @@ public class Main {
         FileOutputFormat.setOutputPath(job, new Path(output));
         FileSystem fs = FileSystem.get(conf);
         fs.delete(new Path(output), true);
-        fs.createNewFile(new Path(output+"/result/0"));
+        fs.createNewFile(new Path(output + "/result/0"));
         Date start = new Date();
         DateFormat dateFormat = new SimpleDateFormat("dd/MM/yy HH:mm:ss");
         Assistant.log("job start at: " + dateFormat.format(start), conf);
         Assistant.log("-----------------------------------------------", conf);
+        fs.mkdirs(new Path(output + "/temp/"));
         boolean exit = job.waitForCompletion(true);
         Date end = new Date();
         long pass = end.getTime() - start.getTime();
@@ -133,6 +138,7 @@ public class Main {
         FileOutputFormat.setOutputPath(job, new Path(output));
         boolean exit = job.waitForCompletion(true);
         if (exit) {
+            Assistant.appendRest(conf);
 //            Assistant.merge(output);
             System.exit(0);
         } else {

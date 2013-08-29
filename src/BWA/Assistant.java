@@ -1,6 +1,7 @@
 package BWA;
 
 import genelab.Conf;
+import inputFormat.FQSplitInfo;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.*;
 import org.apache.hadoop.fs.FileSystem;
@@ -39,70 +40,59 @@ public class Assistant {
         }
     }
 
+    public static boolean copyChunk(FQSplitInfo chunk, String outFile) {
+        try {
+            Path inFile = new Path(chunk.getPath());
+            // Read from and write to new file
+            FileSystem fs = FileSystem.get(new Configuration());
+            FSDataInputStream in = fs.open(inFile);
+            in.seek(chunk.getStart());
+            File file = new File(outFile);
+            if (!file.exists()) {
+                file.createNewFile();
+            } else {
+                file.delete();
+                file.createNewFile();
+            }
+            FileOutputStream outputStream = new FileOutputStream(file);
+            byte[] bytes = new byte[4096];
+            for (int n = 0; n < chunk.getLength() / 4096; n++) {
+                in.read(bytes);
+                outputStream.write(bytes, 0, 4096);
+            }
+            if (in.read(bytes) != -1) {
+                outputStream.write(bytes, 0, (int) (chunk.getLength() % 4096));
+            }
+            in.close();
+            outputStream.close();
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public static void appendResult(Configuration conf) {
         try {
             FileSystem fs = FileSystem.get(conf);
             String outputPath = conf.get("outputPath");
             Path pathResult = fs.listStatus(new Path(outputPath + "/result"))[0].getPath();
-            Path pathLocked = new Path(outputPath + "/result/locked");
             if (!pathResult.getName().equals("locked")) {
                 int currentNum = Integer.valueOf(pathResult.getName());
+                Path pathLocked = new Path(outputPath + "/result/locked");
                 fs.rename(pathResult, pathLocked);
                 FileStatus[] tempFiles = fs.listStatus(new Path(outputPath + "/temp"));
                 int length = tempFiles.length;
                 for (int n = 0; n < length; n++) {
-                    try {
-                        int temN = Integer.valueOf(tempFiles[n].getPath().getName());
-                        if (temN == currentNum + 1) {
-                            System.out.println("merging " + temN);
-                            FSDataInputStream in = fs.open(tempFiles[n].getPath());
-                            FSDataOutputStream out = fs.append(pathLocked, 1048576);
-                            if (tempFiles[n].getLen() < 10) {
-                                log("file " + tempFiles[n].getPath().getName() + " seems wrong, only " + tempFiles[n].getLen() + " bytes big.", conf);
-                            }
-                            byte buffer[] = new byte[1048576];
-                            int bytesRead = 0;
-                            while ((bytesRead = in.read(buffer)) > 0) {
-                                out.write(buffer, 0, bytesRead);
-                            }
-                            in.close();
-                            out.close();
-                            fs.delete(tempFiles[n].getPath(), true);
-                            length -= 1;
-                            currentNum += 1;
-                        }
-                    } catch (Exception e) {
-                    }
-                }
-                fs.rename(pathLocked, new Path(outputPath.toString() + "/result/" + currentNum));
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void appendRest(Configuration conf) throws IOException {
-        System.out.println("appendRest");
-        FileSystem fs = FileSystem.get(conf);
-        String outputPath = conf.get("outputPath");
-        Path pathResult = fs.listStatus(new Path(outputPath + "/result"))[0].getPath();
-        while (pathResult.getName().equals("locked")) {
-
-        }
-        int currentNum = Integer.valueOf(pathResult.getName());
-        while (fs.listStatus(new Path(outputPath + "/temp")).length > 0) {
-            FileStatus[] tempFiles = fs.listStatus(new Path(outputPath + "/temp"));
-            int length = tempFiles.length;
-            for (int n = 0; n < length; n++) {
+//                    try {
                     int temN = Integer.valueOf(tempFiles[n].getPath().getName());
                     if (temN == currentNum + 1) {
                         System.out.println("merging " + temN);
                         FSDataInputStream in = fs.open(tempFiles[n].getPath());
-                        FSDataOutputStream out = fs.append(pathResult, 1048576);
-                        if (tempFiles[n].getLen() < 10) {
-                            log("file " + tempFiles[n].getPath().getName() + " seems wrong, only " + tempFiles[n].getLen() + " bytes big.", conf);
-                        }
-                        byte buffer[] = new byte[1048576];
+                        FSDataOutputStream out = fs.append(pathLocked, 4096);
+                        log("merging " + temN + ": " + tempFiles[n].getLen() + "bytes", conf);
+                        byte buffer[] = new byte[4096];
                         int bytesRead = 0;
                         while ((bytesRead = in.read(buffer)) > 0) {
                             out.write(buffer, 0, bytesRead);
@@ -113,9 +103,60 @@ public class Assistant {
                         length -= 1;
                         currentNum += 1;
                     }
+//                    } catch (Exception e) {
+//                        e.printStackTrace();
+//                    }
+                }
+                fs.rename(pathLocked, new Path(outputPath.toString() + "/result/" + currentNum));
             }
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        fs.rename(pathResult, new Path(outputPath + "/result/" + currentNum));
+    }
+
+    public static void appendRest(Configuration conf) {
+        System.out.println("appendRest");
+        try {
+            log("appending Rest files", conf);
+            FileSystem fs = FileSystem.get(conf);
+            String outputPath = conf.get("outputPath");
+            Path pathResult = fs.listStatus(new Path(outputPath + "/result"))[0].getPath();
+            FSDataOutputStream out = fs.append(pathResult);
+            while (pathResult.getName().equals("locked")) {
+
+            }
+            int currentNum = Integer.valueOf(pathResult.getName());
+            int length = 0;
+            while ((length = fs.listStatus(new Path(outputPath + "/temp")).length) > 0) {
+                log(length + " files remain", conf);
+                FileStatus[] tempFiles = fs.listStatus(new Path(outputPath + "/temp"));
+                for (int n = 0; n < length; n++) {
+                    int temN = Integer.valueOf(tempFiles[n].getPath().getName());
+                    log("checking: " + temN, conf);
+                    if (temN == currentNum + 1) {
+                        log("merging " + temN + ": " + tempFiles[n].getLen() + "bytes", conf);
+                        FSDataInputStream in = fs.open(tempFiles[n].getPath());
+                        byte buffer[] = new byte[4096];
+                        int bytesRead = 0;
+                        while ((bytesRead = in.read(buffer)) > 0) {
+                            out.write(buffer, 0, bytesRead);
+                        }
+                        in.close();
+                        fs.delete(tempFiles[n].getPath(), true);
+                        currentNum += 1;
+                    }
+                }
+                fs.rename(pathResult, new Path(outputPath + "/result/" + currentNum));
+                pathResult = new Path(outputPath + "/result/" + currentNum);
+            }
+            log("finished merging", conf);
+            out.close();
+            fs.delete(new Path(outputPath + "/temp"), true);
+//        fs.rename(pathResult, new Path(outputPath + "/result/result.sam"));
+        } catch (IOException e) {
+            e.printStackTrace();
+            log(e.getMessage(), conf);
+        }
     }
 
     public static void merge(Configuration conf) throws IOException {
@@ -136,7 +177,7 @@ public class Assistant {
                     log("file " + fileStatus.getPath().getName() + " seems wrong, only " + fileStatus.getLen() + " bytes big.", conf);
                 }
                 FSDataInputStream in = fs.open(new Path(cache.toString() + "/" + i));
-                byte buffer[] = new byte[1048576];
+                byte buffer[] = new byte[4096];
                 int bytesRead = 0;
                 while ((bytesRead = in.read(buffer)) > 0) {
                     out.write(buffer, 0, bytesRead);
@@ -166,23 +207,29 @@ public class Assistant {
         return dir.delete();
     }
 
-    public static void log(String info, Configuration conf) throws IOException {
+    public static void log(String info, Configuration conf) {
         System.out.println("log: " + info);
         Path output = new Path(conf.get("outputPath") + "/info.txt");
-        FileSystem fs = FileSystem.get(conf);
-        if (!fs.exists(output)) {
-            fs.createNewFile(output);
+        FileSystem fs = null;
+        try {
+            fs = FileSystem.get(conf);
+
+            if (!fs.exists(output)) {
+                fs.createNewFile(output);
+            }
+            FSDataOutputStream out = fs.append(output);
+            out.writeChars(info + "\n");
+            out.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        FSDataOutputStream out = fs.append(output);
-        out.writeChars(info + "\n");
-        out.close();
     }
 
-    public static void log(String info, Mapper.Context context) throws IOException {
+    public static void log(String info, Mapper.Context context) {
         log(context.getTaskAttemptID() + ":\n" + info + "\n", context.getConfiguration());
     }
 
-    public static void log(String info, Reducer.Context context) throws IOException {
+    public static void log(String info, Reducer.Context context) {
         log(context.getTaskAttemptID() + ":\n" + info + "\n", context.getConfiguration());
     }
 

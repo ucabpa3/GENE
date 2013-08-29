@@ -82,13 +82,13 @@ public class BWAbtReducer extends Reducer<LongWritable, FQSplitInfo, String, Str
                 file.delete();
             }
             FileOutputStream outputStream = new FileOutputStream(file);
-            byte[] bytes = new byte[1048576];
-            for (int n = 0; n < info.getLength() / 1048576; n++) {
+            byte[] bytes = new byte[4096];
+            for (int n = 0; n < info.getLength() / 4096; n++) {
                 in.read(bytes);
-                outputStream.write(bytes, 0, 1048576);
+                outputStream.write(bytes, 0, 4096);
             }
             if (in.read(bytes) != -1) {
-                outputStream.write(bytes, 0, (int) info.getLength() % 1048576);
+                outputStream.write(bytes, 0, (int) info.getLength() % 4096);
             }
             in.close();
             outputStream.close();

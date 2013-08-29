@@ -28,9 +28,16 @@ public class FQSplitInfo implements Writable {
         length=0;
     }
 
+    public FQSplitInfo(String info) {
+        String[] values= info.split(" ");
+        path=values[0];
+        start=Long.parseLong(values[1]);
+        length=Long.parseLong(values[2]);
+    }
+
     @Override
     public String toString(){
-        return path+" start: "+start+" length: "+length+" end: "+(start+length);
+        return path+" "+start+" "+length+" "+(start+length);
     }
 
     public String getPath() {
