@@ -1,5 +1,6 @@
-package BWA;
+package hadoop;
 
+import genelab.Assistant;
 import genelab.Conf;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -71,6 +72,7 @@ public class Maintainer {
                 throws IOException,
                 InterruptedException {
             Assistant.deleteDir(new File(context.getConfiguration().get("clean path")));
+            Assistant.deleteDir(new File("/opt/cores/"));
         }
 
     }

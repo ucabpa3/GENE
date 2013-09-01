@@ -4,9 +4,9 @@
  */
 package genelab;
 
-import BWA.BWAIndexMapper;
-import BWA.BWAMapper;
-import BWA.BWAReducer;
+import hadoop.mapper.BWAIndexMapper;
+import hadoop.mapper.BWAMapper;
+import hadoop.reducer.BWAReducer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.Text;

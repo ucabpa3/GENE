@@ -1,7 +1,7 @@
 package sandbox;
 
-import BWA.AlignmentMapper;
-import BWA.AlignmentReducer;
+import hadoop.mapper.AlignmentMapper;
+import hadoop.reducer.AlignmentReducer;
 import genelab.Conf;
 import inputFormat.FQSplitInfo;
 import org.apache.hadoop.conf.Configuration;
@@ -15,7 +15,6 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.NLineInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
@@ -36,7 +35,6 @@ public class test {
         job.setJarByClass(test.class);
         job.setMapperClass(AlignmentMapper.class);
         job.setReducerClass(AlignmentReducer.class);
-//        job.setInputFormatClass(IndexInputFormat.class);
         job.setInputFormatClass(NLineInputFormat.class);
         job.setOutputFormatClass(NullOutputFormat.class);
         job.setOutputKeyClass(LongWritable.class);

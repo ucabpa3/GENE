@@ -1,4 +1,4 @@
-package BWA;
+package hadoop.mapper;
 
 import inputFormat.FQSplitInfo;
 import org.apache.hadoop.io.LongWritable;

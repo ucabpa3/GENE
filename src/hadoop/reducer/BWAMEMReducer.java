@@ -1,19 +1,11 @@
-package BWA;
+package hadoop.reducer;
 
-import genelab.Conf;
+import genelab.Assistant;
 import inputFormat.FQSplitInfo;
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 
 /**
  * User: yukun
@@ -91,7 +83,7 @@ public class BWAMEMReducer extends Reducer<LongWritable, FQSplitInfo, String, St
 //
 //        context.setStatus("running bwa");
 //        context.progress();
-//        BWAMEMAlgorithm algorithm = new BWAMEMAlgorithm();
+//        BWAmem algorithm = new BWAmem();
 //        try {
 //            algorithm.alignPaired(context, outputPath[0], outputPath[1], new Path(FileOutputFormat.getOutputPath(context) + "/temp/" + key));
 //        } catch (IOException e) {

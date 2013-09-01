@@ -1,4 +1,4 @@
-package BWA;
+package genelab;
 
 import genelab.Conf;
 import inputFormat.FQSplitInfo;
@@ -65,7 +65,6 @@ public class Assistant {
             }
             in.close();
             outputStream.close();
-
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -185,7 +184,7 @@ public class Assistant {
                 in.close();
             }
             out.close();
-            fs.delete(cache, true);
+//            fs.delete(cache, true);
             System.out.println("job successful\n");
         } catch (Exception e) {
             e.printStackTrace();

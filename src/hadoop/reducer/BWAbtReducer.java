@@ -1,5 +1,6 @@
-package BWA;
+package hadoop.reducer;
 
+import genelab.Assistant;
 import genelab.Conf;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
