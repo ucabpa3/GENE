@@ -15,7 +15,9 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.NLineInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 /**
  * User: yukun
@@ -25,22 +27,30 @@ import java.io.IOException;
 @SuppressWarnings("ALL")
 public class test {
     public static void main(String[] args) throws Exception {
-//         new File(Conf.PATH_CACHE+"123").mkdirs();
-        Configuration conf = new Configuration();
-        String output = Conf.HDFS_OUTPUT + "test";
-        conf.set("reference", "138M");
-        conf.set("outputPath", output);
-        conf.set("mapreduce.input.lineinputformat.linespermap","3");
-        Job job = new Job(conf, "test");
-        job.setJarByClass(test.class);
-        job.setMapperClass(AlignmentMapper.class);
-        job.setReducerClass(AlignmentReducer.class);
-        job.setInputFormatClass(NLineInputFormat.class);
-        job.setOutputFormatClass(NullOutputFormat.class);
-        job.setOutputKeyClass(LongWritable.class);
-        job.setOutputValueClass(Text.class);
-        FileInputFormat.addInputPath(job, new Path("/user/yukun/index/118MB"));
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
+        ProcessBuilder pb = new ProcessBuilder("/Users/yukun/Desktop/bwa", "mem","/Users/yukun/Dropbox/GENE project/test_data/new_reference.fa","/Users/yukun/hadoop/input/1.fq");
+//        pb.redirectErrorStream(true);
+        Process process=pb.start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+
+        while ((line = reader.readLine()) != null) {
+            System.out.println("line: "+line);
+        }
+//        Configuration conf = new Configuration();
+//        String output = Conf.HDFS_OUTPUT + "test";
+//        conf.set("reference", "138M");
+//        conf.set("outputPath", output);
+//        conf.set("mapreduce.input.lineinputformat.linespermap","3");
+//        Job job = new Job(conf, "test");
+//        job.setJarByClass(test.class);
+//        job.setMapperClass(AlignmentMapper.class);
+//        job.setReducerClass(AlignmentReducer.class);
+//        job.setInputFormatClass(NLineInputFormat.class);
+//        job.setOutputFormatClass(NullOutputFormat.class);
+//        job.setOutputKeyClass(LongWritable.class);
+//        job.setOutputValueClass(Text.class);
+//        FileInputFormat.addInputPath(job, new Path("/user/yukun/index/118MB"));
+//        System.exit(job.waitForCompletion(true) ? 0 : 1);
     }
 
     @SuppressWarnings("unchecked")

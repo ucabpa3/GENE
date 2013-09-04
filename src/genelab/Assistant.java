@@ -24,7 +24,7 @@ public class Assistant {
         FileStatus[] status = fs.listStatus(hdfs);
         for (int i = 0; i < status.length; i++) {
             File temp = new File(Conf.PATH_REFERENCE + refName + "/" + status[i].getPath().getName());
-            if (!temp.exists()) {
+            if (!temp.exists()||temp.length()!=status[i].getLen()) {
                 fs.copyToLocalFile(false, status[i].getPath(), new Path(temp.getAbsolutePath()));
             }
         }
@@ -217,7 +217,7 @@ public class Assistant {
                 fs.createNewFile(output);
             }
             FSDataOutputStream out = fs.append(output);
-            out.writeChars(info + "\n");
+            out.writeBytes(info + "\n");
             out.close();
         } catch (IOException e) {
             e.printStackTrace();

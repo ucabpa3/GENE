@@ -7,6 +7,7 @@ import hadoop.reducer.AlignmentReducer;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
@@ -75,15 +76,14 @@ public class Main {
         conf.set("mapreduce.input.lineinputformat.linespermap", "3");
         conf.set("mapreduce.tasktracker.reserved.physicalmemory.mb", Conf.RESERVED_MEMORY);
         conf.set("mapred.tasktracker.map.tasks.maximum", "1");
-        conf.set("mapreduce.tasktracker.reserved.physicalmemory.mb", Conf.RESERVED_MEMORY);
-        conf.set("mapreduce.map.java.opts","-Xmx7000m");
+        conf.set("mapreduce.map.java.opts","-Xmx9000m");
         Job job = new Job(conf, "bwa " + args[0] + " " + Conf.N_LINES_PER_CHUNKS + "lines " + args[1] + " " + args[2]);
         job.setJarByClass(Main.class);
         job.setMapperClass(AlignmentMapper.class);
         job.setReducerClass(AlignmentReducer.class);
         job.setInputFormatClass(NLineInputFormat.class);
         job.setOutputFormatClass(NullOutputFormat.class);
-        job.setOutputKeyClass(Text.class);
+        job.setOutputKeyClass(LongWritable.class);
         job.setOutputValueClass(Text.class);
 
         FileInputFormat.addInputPath(job, new Path(Conf.HDFS_INDEX + args[2]));
