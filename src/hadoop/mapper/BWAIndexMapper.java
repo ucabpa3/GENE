@@ -4,6 +4,7 @@
  */
 package hadoop.mapper;
 
+import genelab.Assistant;
 import genelab.Conf;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
@@ -26,24 +27,26 @@ import java.util.logging.Logger;
  */
 public class BWAIndexMapper extends Mapper<Object, Text, Text, Text> {
 
-    private static File refIndexRes = new File("/Users/costas/genelab/reference/result/");
     private static String[] exts = {".amb", ".ann", ".bwt", ".pac", ".sa"};
-    String mainDir = Conf.PATH_MAIN;
     private String bwa = Conf.PATH_BWA;
-    private File refDir = new File(Conf.PATH_REFERENCE);
+    private File refDir = new File(Conf.PATH_CACHE+"/reference/");
 
     @Override
     public void map(Object key, Text value, Mapper.Context context)
             throws IOException, InterruptedException {
-        System.out.println("key : " + key.toString());
         System.out.println("Value:  " + value.toString());
-        Configuration conf = new Configuration();
+        Configuration conf = context.getConfiguration();
         FileSystem hdfsFileSystem = FileSystem.get(conf);
+
+        File wDir = new File(Conf.PATH_CACHE);
+        wDir.mkdirs();
+
+        Assistant.copyBWA(conf);
 
         String in = value.toString();
         String[] tokens = in.split("/");
         refDir.mkdir();
-        refIndexRes.mkdir();
+
         String referenceName = tokens[tokens.length - 1];
         String refLocal = refDir.toString() + "/" + referenceName;
 
@@ -61,7 +64,7 @@ public class BWAIndexMapper extends Mapper<Object, Text, Text, Text> {
             System.out.println("File " + fileName + " copied to local machine on location: " + local);
         }
 
-        Process p = Runtime.getRuntime().exec(bwa + " index " + refLocal, new String[]{" "}, refIndexRes);
+        Process p = Runtime.getRuntime().exec(bwa + " index " + refLocal, new String[]{" "}, refDir);
 
         InputStream is = p.getInputStream();
         InputStreamReader isr = new InputStreamReader(is);
@@ -84,54 +87,12 @@ public class BWAIndexMapper extends Mapper<Object, Text, Text, Text> {
         int exitValue = p.waitFor();
         System.out.println("BWA indexing output : " + exitValue);
 
-        //compress
-
-//        try {
-//            Class<?> codecClass = Class.forName("org.apache.hadoop.io.compress.GzipCodec");
-//            CompressionCodec codec = (CompressionCodec) ReflectionUtils.newInstance(codecClass, conf);
-//            Compressor compressor = null;
-//
-//
-//            byte[] buf = new byte[2048];
-//            try {
-//                compressor = CodecPool.getCompressor(codec);
-//
-//                for (String ext : exts) {
-//                    File snoop_out = new File(refDir.toString() + "/reference" + ext + ".gz");
-//                    snoop_out.createNewFile();
-//                    FileOutputStream snoop = new FileOutputStream(snoop_out);
-//                    CompressionOutputStream out = codec.createOutputStream(snoop, compressor);
-//                    String res = refDir.toString() + "/" + referenceName + ext;
-//                    FileInputStream inp = new FileInputStream(res);
-//                    //out.flush();
-//                    while (true) {
-//                        int r = inp.read(buf);
-//                        IOUtils.copyBytes(inp, out, 4096, false);
-//                        if (r == -1) {
-//
-//                            out.finish();
-//                            inp.close();
-//                            break;
-//                        }
-//
-//
-//                    }
-//
-//
-//                }
-//            } finally {
-//                CodecPool.returnCompressor(compressor);
-//            }
-//        } catch (ClassNotFoundException ex) {
-//            Logger.getLogger(BWAIndexMapper.class.getName()).log(Level.SEVERE, null, ex);
-//        }
 
         //copy
-        Path refResOnHDFS = new Path("/user/costas/reference");
         for (String ext : exts) {
-            Path res = new Path(refDir.toString() + "/reference" + ext);
+            Path res = new Path(refDir.toString() + "/reference.fa" + ext);
             System.out.println("Copy : " + res.toString());
-            hdfsFileSystem.copyFromLocalFile(res, refResOnHDFS);
+            hdfsFileSystem.copyFromLocalFile(false, true, res, new Path(Conf.HDFS_REFERENCE+"/"+conf.get("input")+"/reference.fa"+ext));
         }
 
     }

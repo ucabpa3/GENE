@@ -4,6 +4,7 @@ import hadoop.AlignmentPrepossess;
 import hadoop.Maintainer;
 import hadoop.mapper.AlignmentMapper;
 import hadoop.reducer.AlignmentReducer;
+import inputFormat.WholeFileInputFormat;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -14,6 +15,7 @@ import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.NLineInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
+import hadoop.mapper.BWAIndexMapper;
 
 import java.io.IOException;
 
@@ -45,7 +47,11 @@ public class Main {
         } else if (args[0].equals("mem") || args[0].equals("backtrack")) {
 //            AlignmentPrepossess.run(args[2]);
             align(args);
-        } else if (args[0].equals("clean")) {
+        }
+        else if(args[0].equals("index"))  {
+               index(args[1]);
+        }
+        else if (args[0].equals("clean")) {
             if (args[1].equals("all")) {
                 Maintainer.cleanAll();
             } else if (args[1].equals("reference")) {
@@ -76,7 +82,7 @@ public class Main {
         conf.set("mapreduce.input.lineinputformat.linespermap", "3");
         conf.set("mapreduce.tasktracker.reserved.physicalmemory.mb", Conf.RESERVED_MEMORY);
         conf.set("mapred.tasktracker.map.tasks.maximum", "1");
-        conf.set("mapreduce.map.java.opts","-Xmx9000m");
+        conf.set("mapreduce.map.java.opts", "-Xmx9000m");
         Job job = new Job(conf, "bwa " + args[0] + " " + Conf.N_LINES_PER_CHUNKS + "lines " + args[1] + " " + args[2]);
         job.setJarByClass(Main.class);
         job.setMapperClass(AlignmentMapper.class);
@@ -91,11 +97,36 @@ public class Main {
         FileSystem fs = FileSystem.get(conf);
         fs.delete(new Path(output), true);
         fs.mkdirs(new Path(output + "/temp/"));
-        fs.createNewFile(new Path(output+"/result/0"));
+        fs.createNewFile(new Path(output + "/result/0"));
         boolean exit = job.waitForCompletion(true);
         if (exit) {
             System.exit(0);
         } else {
+            System.exit(1);
+        }
+    }
+
+    public static void index(String refName) throws IOException, ClassNotFoundException, InterruptedException{
+        Configuration conf = new Configuration();
+        conf.set("input",refName);
+        Job job = new Job(conf, refName+"alignment");
+        job.setJarByClass(Main.class);
+        job.setMapperClass(BWAIndexMapper.class);
+        job.setNumReduceTasks(0);
+        job.setInputFormatClass(WholeFileInputFormat.class);
+        job.setOutputFormatClass(NullOutputFormat.class);
+        job.setOutputKeyClass(Text.class);
+        job.setOutputValueClass(Text.class);
+
+        FileInputFormat.addInputPath(job, new Path(refName));
+        FileOutputFormat.setOutputPath(job, new Path("indexed_output"));
+
+        boolean exit = job.waitForCompletion(true);
+        if (exit) {
+            System.exit(0);
+        } else {
+            FileSystem fs = FileSystem.get(conf);
+            fs.delete(new Path("indexed_output"), true);
             System.exit(1);
         }
     }

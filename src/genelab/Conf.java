@@ -34,4 +34,5 @@ public class Conf {
     public static String HDFS_INPUT=HDFS_MAIN+"input/";
     public static String HDFS_OUTPUT=HDFS_MAIN+"output/";
     public static String HDFS_TEMP=HDFS_MAIN+"/temp/";
+
 }
