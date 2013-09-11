@@ -37,7 +37,7 @@ public class Main {
         System.err.println("         clean         clean the files on nodes");
         System.err.println("Note: To use BWA, you need to first index the genome with `bwa index'. There are" +
                 " three alignment algorithms in BWA: `mem', `bwasw' and `aln/samse/sampe'. If you are not sure" +
-                " which to use, try `bwa mem' first. Please `man ./bwa.1' for for the manual.");
+                " which to use, try `bwa mem' first. Please `man ./bwa' for for the manual.");
         System.exit(2);
     }
 
@@ -45,7 +45,7 @@ public class Main {
         if (args.length < 1) {
             Main.usage();
         } else if (args[0].equals("mem") || args[0].equals("backtrack")) {
-//            AlignmentPrepossess.run(args[2]);
+            AlignmentPrepossess.run(args[2]);
             align(args);
         }
         else if(args[0].equals("index"))  {
@@ -82,7 +82,7 @@ public class Main {
         conf.set("mapreduce.input.lineinputformat.linespermap", "3");
         conf.set("mapreduce.tasktracker.reserved.physicalmemory.mb", Conf.RESERVED_MEMORY);
         conf.set("mapred.tasktracker.map.tasks.maximum", "1");
-        conf.set("mapreduce.map.java.opts", "-Xmx9000m");
+        conf.set("mapreduce.map.java.opts", "-Xmx"+Conf.RESERVED_MEMORY+"m");
         Job job = new Job(conf, "bwa " + args[0] + " " + Conf.N_LINES_PER_CHUNKS + "lines " + args[1] + " " + args[2]);
         job.setJarByClass(Main.class);
         job.setMapperClass(AlignmentMapper.class);
@@ -96,8 +96,6 @@ public class Main {
         FileOutputFormat.setOutputPath(job, new Path(output));
         FileSystem fs = FileSystem.get(conf);
         fs.delete(new Path(output), true);
-        fs.mkdirs(new Path(output + "/temp/"));
-        fs.createNewFile(new Path(output + "/result/0"));
         boolean exit = job.waitForCompletion(true);
         if (exit) {
             System.exit(0);

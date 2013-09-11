@@ -31,7 +31,7 @@ public class BWAmem implements AlignmentAlgorithm {
 //        System.out.println(command);
         try {
             ProcessBuilder pb = new ProcessBuilder("Conf.PATH_BWA", "mem", "Conf.PATH_REFERENCE + context.getConfiguration().get(\"reference\") + \"/reference.fa", input);
-            pb.redirectErrorStream(true);
+//            pb.redirectErrorStream(true);
             FSDataOutputStream out = fs.create(outputFile, true);
             process = pb.start();
 
@@ -67,7 +67,7 @@ public class BWAmem implements AlignmentAlgorithm {
 
         try {
             ProcessBuilder pb = new ProcessBuilder(Conf.PATH_BWA, "mem", Conf.PATH_REFERENCE + context.getConfiguration().get("reference") + "/reference.fa", input_1, input_2);
-            pb.redirectErrorStream(true);
+//            pb.redirectErrorStream(true);
             FSDataOutputStream out = fs.create(outputFile, true);
             process = pb.start();
 

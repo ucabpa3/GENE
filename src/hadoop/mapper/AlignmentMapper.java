@@ -78,28 +78,43 @@ public class AlignmentMapper extends Mapper<LongWritable, Text, LongWritable, Te
             context.setStatus("alignment paired");
             context.progress();
             try {
-                algorithm.alignPaired(context, outputPath[0], outputPath[1], new Path(output),key);
-            } catch (IOException e) {
+                algorithm.alignPaired(context, outputPath[0], outputPath[1], new Path(output), key);
+            } catch (Exception e) {
                 e.printStackTrace();
+            } finally {
+                finished = true;
+//        clean working directory
+                context.setStatus("cleaning");
+                context.progress();
+                Assistant.deleteDir(workingDir);
+                Assistant.deleteDir(new File("/opt/cores/"));
+                System.out.println(output);
+                context.write(new LongWritable(key), new Text(output));
+//            context.setStatus("appending");
+//            context.progress();
+//            Assistant.appendResult(context.getConfiguration());
             }
         } else {
             context.setStatus("alignment single");
             context.progress();
             try {
-                algorithm.alignSingle(context, outFile, new Path(output),key);
-            } catch (IOException e) {
+                algorithm.alignSingle(context, outFile, new Path(output), key);
+            } catch (Exception e) {
                 e.printStackTrace();
-            }
-            finished = true;
+            } finally {
+                finished = true;
 //        clean working directory
-            context.setStatus("cleaning");
-            context.progress();
-            Assistant.deleteDir(workingDir);
-            Assistant.deleteDir(new File("/opt/cores/"));
-            context.write(new LongWritable(key), new Text(output));
+                context.setStatus("cleaning");
+                context.progress();
+                Assistant.deleteDir(workingDir);
+                Assistant.deleteDir(new File("/opt/cores/"));
+                System.out.println(output);
+                context.write(new LongWritable(key), new Text(output));
 //            context.setStatus("appending");
 //            context.progress();
 //            Assistant.appendResult(context.getConfiguration());
+            }
+
         }
     }
 

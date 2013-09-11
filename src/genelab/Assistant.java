@@ -35,7 +35,6 @@ public class Assistant {
         if (!bwaFile.exists()) {
             FileSystem fs = FileSystem.get(conf);
             Path hdfs = new Path(Conf.HDFS_BWA);
-            FileStatus[] status = fs.listStatus(hdfs);
             fs.copyToLocalFile(false, hdfs, new Path(bwaFile.getAbsolutePath()));
         }
     }
